@@ -1,0 +1,4174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>WiseMock</title>
+  <script src="qrc:///qtwebchannel/qwebchannel.js"></script>
+  <style>
+    /* DM Sans / DM Mono are embedded locally (wisemock/assets/fonts/) so the
+       app renders identically on macOS, Windows, and Linux without depending
+       on a network connection or system-installed fonts. DM Sans is a single
+       variable font file covering weights 100-1000; DM Mono ships a separate
+       file per weight. */
+    @font-face {
+      font-family: "DM Sans";
+      src: url("fonts/DMSans-Variable.woff2") format("woff2-variations"),
+           url("fonts/DMSans-Variable.woff2") format("woff2");
+      font-weight: 100 1000;
+      font-style: normal;
+      font-display: swap;
+    }
+    @font-face {
+      font-family: "DM Mono";
+      src: url("fonts/DMMono-Regular.woff2") format("woff2");
+      font-weight: 400;
+      font-style: normal;
+      font-display: swap;
+    }
+    @font-face {
+      font-family: "DM Mono";
+      src: url("fonts/DMMono-Medium.woff2") format("woff2");
+      font-weight: 500;
+      font-style: normal;
+      font-display: swap;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { height: 100%; }
+    :root {
+      --header-bg: #3c3c3c;
+      --nav-bg: #cacaca;
+      --nav-border: #b8b8b8;
+      --body-bg: #dcdcdc;
+      --surface: #ffffff;
+      --surface-2: #f7f7f7;
+      --border: #e8e8e8;
+      --border-mid: #d0d0d0;
+      --text: #1a1a1a;
+      --text-2: #555;
+      --text-3: #aaa;
+      --accent: #2c2c2c;
+      --danger: #d03030;
+      --success: #2f8f59;
+      --warn: #b57a00;
+      --shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+    }
+
+    body {
+      font-family: "DM Sans", "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+      background: var(--body-bg);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      /* Cross-platform text rendering: -webkit-font-smoothing is macOS/WebKit
+         only; text-rendering and moz-osx-font-smoothing cover Linux/Firefox.
+         Windows uses its own ClearType pipeline — none of these hurt it. */
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+      text-rendering: optimizeLegibility;
+      overflow: hidden;
+    }
+
+    button, input, select, textarea {
+      font: inherit;
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
+    .app-header {
+      background: var(--header-bg);
+      height: 58px;
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 clamp(14px, 3vw, 28px);
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 0;
+    }
+
+    .logo {
+      width: 36px;
+      height: 36px;
+      background: rgba(255, 255, 255, 0.12);
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      color: #e8e8e8;
+      font-size: 16px;
+      font-weight: 700;
+      letter-spacing: -0.04em;
+      overflow: hidden;
+    }
+    .logo img {
+      width: 28px;
+      height: 28px;
+      object-fit: contain;
+      display: block;
+    }
+
+    .brand-info strong {
+      font-size: 15.5px;
+      font-weight: 600;
+      color: #f2f2f2;
+      letter-spacing: -0.2px;
+      display: block;
+      line-height: 1;
+    }
+
+    .brand-info {
+      margin-left: 8px;
+    }
+
+    .brand-info small {
+      font-size: 10.5px;
+      color: #888;
+      font-weight: 400;
+      margin-top: 2px;
+      display: block;
+    }
+
+    .help-btn,
+    .pause-btn,
+    .tbl-btn,
+    .secondary-btn,
+    .tb-btn {
+      border: none;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+
+    .help-btn {
+      font-size: 13px;
+      font-weight: 500;
+      color: #ccc;
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      border-radius: 7px;
+      padding: 7px 16px;
+    }
+
+    .help-btn:hover {
+      background: rgba(255, 255, 255, 0.15);
+      color: #fff;
+    }
+
+    .app-nav,
+    .exam-nav {
+      background: var(--nav-bg);
+      border-bottom: 1px solid var(--nav-border);
+      display: flex;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .tab,
+    .exam-tab {
+      font-size: 13.5px;
+      font-weight: 500;
+      color: #777;
+      background: none;
+      border: none;
+      border-bottom: 2px solid transparent;
+      padding: 14px 28px;
+      cursor: pointer;
+      transition: color 0.15s ease;
+    }
+
+    .tab:hover,
+    .exam-tab:hover {
+      color: #444;
+    }
+
+    .tab.active,
+    .exam-tab.active {
+      color: #1a1a1a;
+      border-bottom-color: #1a1a1a;
+    }
+
+    main {
+      flex: 1;
+      min-height: 0;
+      overflow-y: auto;
+      /* Fluid padding: tight on small windows, comfortable when maximized. */
+      padding: clamp(16px, 3vw, 36px) clamp(12px, 2.5vw, 28px) 64px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    #panel-setup,
+    #panel-performance {
+      width: 100%;
+      /* Cap for readability, but scale with the window so a maximized /
+         fullscreen view uses the space and a min-size window never gets
+         cramped against the edges. */
+      max-width: min(880px, 94vw);
+    }
+
+    #panel-performance {
+      display: none;
+      flex-direction: column;
+      gap: 0;
+      --performance-section-gap: 20px;
+    }
+
+    .drop-card,
+    .settings-card,
+    .bottom-card,
+    .stat-card,
+    .table-card,
+    .q-block-mc,
+    .q-block-essay,
+    .q-block-fill {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      box-shadow: var(--shadow);
+    }
+
+    .drop-card {
+      border-radius: 14px 14px 0 0;
+      border-bottom: none;
+      overflow: hidden;
+    }
+
+    .drop-zone {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      padding: 18px 24px;
+      cursor: pointer;
+      transition: background 0.15s ease, border-color 0.15s ease;
+      border: 2px dashed transparent;
+      border-radius: 12px;
+      margin: 10px;
+    }
+
+    .drop-zone.drag-over,
+    .drop-zone:hover {
+      background: var(--surface-2);
+      border-color: var(--border-mid);
+    }
+
+    .drop-zone.is-loading {
+      background: var(--surface);
+      border-color: transparent;
+      cursor: default;
+    }
+
+    .drop-icon {
+      width: 48px;
+      height: 48px;
+      flex-shrink: 0;
+      background: var(--surface-2);
+      border: 1px solid var(--border-mid);
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 22px;
+      color: var(--text-2);
+      position: relative;
+    }
+
+    #dropIconGlyph {
+      display: flex;
+      transform: translateY(0);
+    }
+
+    .drop-progress {
+      width: 26px;
+      height: 26px;
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%) rotate(-90deg);
+      transform-origin: center;
+      display: none;
+    }
+
+    .drop-progress circle {
+      fill: none;
+      stroke-width: 5;
+    }
+
+    .drop-progress .track {
+      stroke: #e5e5e5;
+    }
+
+    .drop-progress .fill {
+      stroke: var(--text);
+      stroke-linecap: round;
+      stroke-dasharray: 88;
+      stroke-dashoffset: 88;
+      transition: stroke-dashoffset 0.18s ease;
+    }
+
+    .drop-progress-text {
+      display: none;
+    }
+
+    .drop-zone.is-loading .drop-icon {
+      color: transparent;
+      background: #f7f7f7;
+      border-color: var(--border);
+    }
+
+    .drop-zone.is-loading .drop-progress {
+      display: flex;
+    }
+
+    .drop-text h3 {
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--text);
+    }
+
+    .drop-text {
+      min-width: 0;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      margin-left: 8px;
+    }
+
+    .drop-text p {
+      font-size: 13px;
+      color: var(--text-3);
+      margin: 0;
+    }
+
+    .drop-linear-progress {
+      width: min(360px, 100%);
+      height: 4px;
+      margin-top: 4px;
+      border-radius: 999px;
+      background: #ececec;
+      overflow: hidden;
+      display: none;
+    }
+
+    .drop-linear-progress-fill {
+      width: 0%;
+      height: 100%;
+      border-radius: inherit;
+      background: var(--text);
+      transition: width 0.18s ease;
+    }
+
+    .drop-zone.is-loading .drop-linear-progress {
+      display: block;
+    }
+
+    .drop-divider,
+    .section-divider {
+      height: 1px;
+      background: var(--border);
+      margin: 0 20px;
+    }
+
+    .paste-row {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 13px 28px;
+    }
+
+    .paste-btn {
+      font-size: 13.5px;
+      font-weight: 500;
+      color: var(--text-2);
+      background: none;
+      border: none;
+      cursor: pointer;
+      transition: color 0.15s ease;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .paste-btn:hover {
+      color: var(--text);
+    }
+
+    .sample-action-row {
+      display: flex;
+      justify-content: flex-start;
+      padding: 0 24px 16px;
+    }
+
+    .sample-link {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text-2);
+      background: var(--surface-2);
+      border: 1px solid var(--border-mid);
+      border-radius: 8px;
+      padding: 8px 12px;
+      cursor: pointer;
+      text-align: left;
+      transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+    }
+
+    .sample-link:hover {
+      color: var(--text);
+      background: #fff;
+      border-color: #bdbdbd;
+    }
+
+    .sample-link.hidden {
+      display: none;
+    }
+
+    /* Markdown rendering for code blocks and inline code (renderInline) */
+    .md-code-block {
+      display: block;
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 12px 14px;
+      margin: 8px 0;
+      font-family: 'SF Mono', 'Monaco', 'Menlo', 'Consolas', 'Courier New', monospace;
+      font-size: 12.5px;
+      line-height: 1.55;
+      color: var(--text);
+      overflow-x: auto;
+      white-space: pre;
+      tab-size: 4;
+    }
+
+    .md-code-block code {
+      background: none;
+      padding: 0;
+      border: 0;
+      font-family: inherit;
+      font-size: inherit;
+      color: inherit;
+      white-space: inherit;
+    }
+
+    .md-inline-code {
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 1px 5px;
+      font-family: 'SF Mono', 'Monaco', 'Menlo', 'Consolas', 'Courier New', monospace;
+      font-size: 0.92em;
+      color: var(--text);
+    }
+
+    .generator-panel {
+      padding: 18px 28px 20px;
+    }
+
+    .generator-panel h4 {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--text-3);
+      margin-bottom: 14px;
+    }
+
+    .generator-panel button,
+    .primary-btn,
+    .submit-btn,
+    .mbtn.primary,
+    .mbtn.danger {
+      font-size: 14px;
+      font-weight: 600;
+      color: #fff;
+      background: var(--accent);
+      border: none;
+      border-radius: 10px;
+      padding: 12px 18px;
+      cursor: pointer;
+      transition: opacity 0.15s ease, transform 0.1s ease;
+    }
+
+    .mbtn.secondary,
+    .secondary-btn,
+    .generator-panel .ghost-btn {
+      color: var(--text-2);
+      background: var(--surface);
+      border: 1px solid var(--border-mid);
+    }
+
+    .mbtn.danger {
+      background: var(--danger);
+    }
+
+    .generator-panel button:hover,
+    .primary-btn:hover,
+    .submit-btn:hover,
+    .mbtn:hover {
+      opacity: 0.86;
+    }
+
+    .generator-panel button:active,
+    .primary-btn:active,
+    .submit-btn:active,
+    .mbtn:active {
+      transform: scale(0.985);
+    }
+
+    .generator-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+
+    .mini-field label,
+    .field-lbl {
+      font-size: 15px;
+      font-weight: 500;
+      color: var(--text);
+    }
+
+    .mini-field label {
+      display: block;
+      margin-bottom: 6px;
+    }
+
+    .mini-field select,
+    .mini-field input[type="number"],
+    .txt-input,
+    .api-input,
+    .generator-panel select {
+      width: 100%;
+      font-size: 15px;
+      color: var(--text);
+      background: var(--surface-2);
+      border: 1px solid var(--border-mid);
+      border-radius: 8px;
+      padding: 9px 14px;
+      outline: none;
+      transition: border-color 0.15s ease;
+    }
+
+    .mini-field select:focus,
+    .mini-field input[type="number"]:focus,
+    .txt-input:focus,
+    .api-input:focus,
+    .generator-panel select:focus {
+      border-color: #999;
+      background: #fff;
+    }
+
+    .custom-size-field {
+      display: none;
+    }
+
+    .custom-size-field.visible {
+      display: block;
+      margin-top: 10px;
+    }
+
+    /* Difficulty slider — Athos asked for a 1-10 bar instead of easy/medium/hard.
+       Track + macOS-style thumb. Live readout in the label shows the current
+       numeric value plus a friendly word ("Moderate", "Expert", etc.). */
+    .difficulty-readout {
+      float: right;
+      font-family: "DM Mono", Consolas, "Courier New", monospace;
+      font-size: 12px;
+      color: var(--text-3);
+      font-weight: 500;
+    }
+
+    .difficulty-readout #genDifficultyValue {
+      color: var(--text);
+      font-weight: 600;
+    }
+
+    .difficulty-slider {
+      width: 100%;
+      -webkit-appearance: none;
+      appearance: none;
+      background: transparent;
+      padding: 6px 0;
+      cursor: pointer;
+    }
+
+    .difficulty-slider::-webkit-slider-runnable-track {
+      height: 4px;
+      background: var(--border-mid);
+      border-radius: 999px;
+    }
+
+    .difficulty-slider::-moz-range-track {
+      height: 4px;
+      background: var(--border-mid);
+      border-radius: 999px;
+      border: none;
+    }
+
+    .difficulty-slider::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      background: var(--text);
+      border: 2px solid #fff;
+      box-shadow: 0 1px 4px rgba(0, 0, 0, 0.18);
+      margin-top: -7px; /* center on the 4px track */
+      transition: transform 0.08s ease;
+    }
+
+    .difficulty-slider::-moz-range-thumb {
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      background: var(--text);
+      border: 2px solid #fff;
+      box-shadow: 0 1px 4px rgba(0, 0, 0, 0.18);
+      transition: transform 0.08s ease;
+    }
+
+    .difficulty-slider:active::-webkit-slider-thumb {
+      transform: scale(1.1);
+    }
+    .difficulty-slider:active::-moz-range-thumb {
+      transform: scale(1.1);
+    }
+
+    .generator-types {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin: 4px 0 12px;
+    }
+
+    .check-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 9px 12px;
+      border: 1px solid var(--border-mid);
+      border-radius: 999px;
+      background: var(--surface-2);
+      cursor: pointer;
+      font-size: 13px;
+      color: var(--text-2);
+    }
+
+    .check-chip input {
+      accent-color: var(--accent);
+    }
+
+    .status-line {
+      font-size: 12.5px;
+      color: var(--text-3);
+      line-height: 1.6;
+      margin-bottom: 12px;
+      min-height: 20px;
+    }
+
+    .settings-card {
+      border-top: none;
+      overflow: hidden;
+    }
+
+    .section {
+      border-bottom: 1px solid var(--border);
+    }
+
+    .section:last-child {
+      border-bottom: none;
+    }
+
+    .section-title {
+      padding: 20px 28px 0;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--text-3);
+    }
+
+    .field-row {
+      display: flex;
+      align-items: center;
+      padding: 14px 28px;
+      gap: 16px;
+    }
+
+    .field-row + .field-row {
+      border-top: 1px solid var(--border);
+    }
+
+    .field-lbl {
+      width: 100px;
+      flex-shrink: 0;
+    }
+
+    .txt-input::placeholder,
+    .api-input::placeholder {
+      color: var(--text-3);
+    }
+
+    .dur-control {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      width: 100%;
+    }
+
+    .stepper {
+      display: flex;
+      align-items: center;
+      background: var(--surface-2);
+      border: 1px solid var(--border-mid);
+      border-radius: 8px;
+      overflow: hidden;
+    }
+
+    .stepper-btn {
+      width: 36px;
+      height: 38px;
+      background: none;
+      border: none;
+      font-size: 18px;
+      font-weight: 300;
+      color: var(--text-2);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background 0.12s ease;
+      user-select: none;
+    }
+
+    .stepper-btn:hover {
+      background: #e8e8e8;
+      color: var(--text);
+    }
+
+    .stepper-val {
+      font-family: "DM Mono", Consolas, "Courier New", monospace;
+      font-size: 15px;
+      font-weight: 500;
+      color: var(--text);
+      width: 36px;
+      height: 38px;
+      text-align: center;
+      border: none;
+      border-left: 1px solid var(--border-mid);
+      border-right: 1px solid var(--border-mid);
+      border-radius: 0;
+      padding: 0 4px;
+      background: #fff;
+      outline: none;
+      -webkit-appearance: none;
+      appearance: none;
+    }
+    .stepper-val:focus {
+      background: #f7f7f7;
+    }
+
+    .stepper-unit {
+      font-size: 13px;
+      color: var(--text-3);
+      font-weight: 500;
+      margin: 0 12px 0 8px;
+    }
+
+    .toggle-row {
+      display: flex;
+      align-items: center;
+      padding: 16px 28px;
+      gap: 16px;
+      cursor: pointer;
+      transition: background 0.1s ease;
+    }
+
+    .toggle-row + .toggle-row {
+      border-top: 1px solid var(--border);
+    }
+
+    .toggle-row:hover {
+      background: var(--surface-2);
+    }
+
+    .toggle-text {
+      flex: 1;
+    }
+
+    .toggle-text strong {
+      font-size: 15px;
+      font-weight: 400;
+      color: var(--text);
+      display: block;
+    }
+
+    .toggle-text small {
+      font-size: 12px;
+      color: var(--text-3);
+      margin-top: 1px;
+      display: block;
+    }
+
+    .toggle-row input[type="checkbox"] {
+      display: none;
+    }
+
+    .toggle-switch {
+      width: 44px;
+      height: 26px;
+      background: #d0d0d0;
+      border-radius: 13px;
+      position: relative;
+      transition: background 0.2s ease;
+      flex-shrink: 0;
+    }
+
+    .toggle-switch::after {
+      content: "";
+      position: absolute;
+      width: 22px;
+      height: 22px;
+      background: #fff;
+      border-radius: 11px;
+      top: 2px;
+      left: 2px;
+      box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
+      transition: transform 0.2s ease;
+    }
+
+    .toggle-row input:checked + .toggle-switch {
+      background: #3c3c3c;
+    }
+
+    .toggle-row input:checked + .toggle-switch::after {
+      transform: translateX(18px);
+    }
+
+    .api-note {
+      padding: 14px 28px 0;
+      font-size: 12.5px;
+      color: var(--text-3);
+      line-height: 1.6;
+    }
+
+    /* Highlight the Groq AI Features section so users notice they can
+       (optionally) unlock AI by adding a key. Same green as the Activate
+       AI button used after submission, so the visual language is consistent. */
+    .section.ai-section {
+      background: linear-gradient(180deg, rgba(42, 158, 80, 0.06), rgba(42, 158, 80, 0.015));
+      border-left: 3px solid #2a9e50;
+    }
+
+    .ai-section .section-title {
+      color: #2a9e50;
+    }
+
+    .ai-section .section-title::before {
+      content: "✨ ";
+      margin-right: 2px;
+    }
+
+    .ai-section .api-note {
+      color: var(--text-2);
+    }
+
+    .ai-section .api-input {
+      border-color: rgba(42, 158, 80, 0.3);
+    }
+
+    .ai-section .api-input:focus {
+      border-color: #2a9e50;
+      box-shadow: 0 0 0 3px rgba(42, 158, 80, 0.15);
+    }
+
+    .external-link {
+      color: var(--accent);
+      text-decoration: none;
+      border-bottom: 1px solid transparent;
+      cursor: pointer;
+      transition: border-color 0.15s ease, filter 0.15s ease;
+    }
+
+    .external-link:hover {
+      border-bottom-color: var(--accent);
+      filter: brightness(0.92);
+    }
+
+    .bottom-card {
+      border-top: none;
+      border-radius: 0 0 14px 14px;
+      overflow: hidden;
+    }
+
+    .start-wrap {
+      padding: 24px 0;
+      display: flex;
+      justify-content: center;
+    }
+
+    .start-btn,
+    .submit-btn {
+      font-size: 16px;
+      font-weight: 600;
+      color: #fff;
+      background: var(--accent);
+      border: none;
+      border-radius: 12px;
+      padding: 15px 72px;
+      cursor: pointer;
+      letter-spacing: -0.1px;
+      transition: opacity 0.15s ease, transform 0.1s ease;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    /* Next Section CTA: same shape as Submit but distinct color so the user
+       perceives it as forward navigation, not finalization. */
+    .next-section-btn {
+      font-size: 16px;
+      font-weight: 600;
+      color: #fff;
+      background: #1a1a1a;
+      border: none;
+      border-radius: 12px;
+      padding: 15px 48px;
+      cursor: pointer;
+      letter-spacing: -0.1px;
+      transition: filter 0.15s ease, transform 0.1s ease, box-shadow 0.15s ease;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+    }
+    .next-section-btn:hover {
+      filter: brightness(1.15);
+      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.18);
+    }
+    .next-section-btn:active {
+      transform: scale(0.985);
+    }
+
+    /* Secondary buttons in the submit bar (Review Mistakes / AI Study Report) */
+    .submit-bar .secondary-btn {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text);
+      background: var(--surface);
+      border: 1px solid var(--border-mid);
+      border-radius: 12px;
+      padding: 14px 22px;
+      cursor: pointer;
+      letter-spacing: -0.1px;
+      transition: opacity 0.15s ease, transform 0.1s ease, background 0.15s ease, border-color 0.15s ease;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+    }
+    .submit-bar .secondary-btn:hover {
+      background: var(--surface-2);
+      border-color: var(--text-3);
+    }
+    .submit-bar .secondary-btn:active {
+      transform: scale(0.985);
+    }
+
+    .start-btn:disabled,
+    .submit-btn:disabled,
+    .primary-btn:disabled {
+      opacity: 0.45;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .perf-heading h2 {
+      font-size: 20px;
+      font-weight: 600;
+      color: var(--text);
+      letter-spacing: -0.3px;
+    }
+
+    .perf-heading p {
+      font-size: 13px;
+      color: var(--text-2);
+      margin-top: 3px;
+    }
+
+    .stats-row {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 12px;
+    }
+
+    .stat-card {
+      border-radius: 12px;
+      padding: 20px 22px;
+    }
+
+    .stat-val {
+      font-family: "DM Mono", Consolas, "Courier New", monospace;
+      font-size: 28px;
+      font-weight: 500;
+      color: var(--text);
+      letter-spacing: -1px;
+      line-height: 1;
+    }
+
+    .stat-lbl {
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.09em;
+      text-transform: uppercase;
+      color: var(--text-3);
+      margin-top: 8px;
+    }
+
+    .charts-row {
+      display: grid;
+      /* Equal cards so the best-by-exam card has enough room for the
+         fixed-width title + bar + stats columns without horizontal overflow. */
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+      gap: 14px;
+      margin-top: var(--performance-section-gap);
+      margin-bottom: 0;
+    }
+
+    .charts-row.hidden {
+      display: none;
+    }
+
+    .charts-row.single-col {
+      grid-template-columns: minmax(0, 1fr);
+    }
+
+    .chart-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      box-shadow: var(--shadow);
+      padding: 16px 18px 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      min-height: 240px;
+      /* Cap height so a long best-by-exam list doesn't blow up the section.
+         Both cards share the same cap → they always look symmetric. */
+      max-height: 380px;
+    }
+
+    .chart-card.hidden {
+      display: none;
+    }
+
+    .chart-header {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 4px;
+    }
+
+    .chart-title {
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      color: var(--text-2);
+    }
+
+    .chart-sub {
+      font-size: 11px;
+      color: var(--text-3);
+      font-weight: 500;
+      letter-spacing: 0.02em;
+    }
+
+    .chart-body {
+      flex: 1;
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      /* Scroll the content (e.g. long best-by-exam list) inside the card
+         instead of growing the card itself. min-height:0 is needed so flex
+         children can actually shrink and trigger overflow. */
+      overflow-y: auto;
+      min-height: 0;
+    }
+
+    /* Best of both worlds: when content FITS, auto margins absorb the free
+       space and the child is centered. When content OVERFLOWS, auto margins
+       collapse to 0 → child anchored at top → scroll reveals all rows. */
+    .chart-body > * {
+      margin-top: auto;
+      margin-bottom: auto;
+    }
+
+    /* Subtle scrollbar inside chart cards */
+    .chart-body::-webkit-scrollbar {
+      width: 6px;
+    }
+    .chart-body::-webkit-scrollbar-thumb {
+      background: var(--border-mid);
+      border-radius: 3px;
+    }
+    .chart-body::-webkit-scrollbar-track {
+      background: transparent;
+    }
+
+    .chart-progression-wrap {
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .chart-plot-row {
+      display: flex;
+      gap: 8px;
+      align-items: stretch;
+    }
+
+    .chart-yaxis {
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      font-size: 10px;
+      font-family: "DM Mono", Consolas, "Courier New", monospace;
+      color: var(--text-3);
+      letter-spacing: 0.02em;
+      min-width: 30px;
+      text-align: right;
+    }
+
+    .chart-svg {
+      flex: 1;
+      min-width: 0;
+      aspect-ratio: 600 / 180;
+      max-height: 220px;
+      overflow: visible;
+      display: block;
+    }
+
+    .chart-xaxis {
+      display: flex;
+      justify-content: space-between;
+      font-size: 10px;
+      font-family: "DM Mono", Consolas, "Courier New", monospace;
+      color: var(--text-3);
+      letter-spacing: 0.02em;
+      margin-top: 6px;
+      /* Offset by yaxis width so first/last align with the SVG's edges. */
+      padding-left: 38px;
+    }
+
+    .chart-svg .grid-line {
+      stroke: var(--border);
+      stroke-width: 1;
+      stroke-dasharray: 2 3;
+    }
+
+    .chart-svg .data-line {
+      fill: none;
+      stroke: var(--accent);
+      stroke-width: 2;
+      stroke-linejoin: round;
+      stroke-linecap: round;
+    }
+
+    .chart-svg .trend-line {
+      fill: none;
+      stroke: var(--text-3);
+      stroke-width: 1.2;
+      stroke-dasharray: 4 4;
+      opacity: 0.55;
+    }
+
+    .chart-svg .data-dot {
+      stroke: #ffffff;
+      stroke-width: 1.5;
+    }
+
+    .chart-svg .data-dot.good   { fill: #2a9e50; }
+    .chart-svg .data-dot.mid    { fill: #d09418; }
+    .chart-svg .data-dot.poor   { fill: #c23b3b; }
+
+    .best-rows {
+      display: flex;
+      flex-direction: column;
+      gap: 9px;
+      width: 100%;
+    }
+
+    .best-row {
+      display: grid;
+      /* Fixed widths so EVERY bar starts and ends at exactly the same X
+         coordinate, regardless of title length or stats content. Title
+         truncates with ellipsis at 110px → consistent visual char cap.
+         Bar fixed 110px. Stats fills remaining space, right-aligned, so
+         it always sits at the card's right edge with no horizontal scroll. */
+      grid-template-columns: 110px 110px 1fr;
+      gap: 10px;
+      align-items: center;
+      font-size: 12px;
+    }
+
+    .best-row-title {
+      color: var(--text);
+      font-weight: 500;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .best-bar-track {
+      position: relative;
+      height: 10px;
+      background: var(--surface-2);
+      border-radius: 999px;
+      overflow: visible;
+    }
+
+    .best-bar-fill {
+      position: absolute;
+      left: 0;
+      top: 0;
+      bottom: 0;
+      background: var(--accent);
+      border-radius: 999px;
+    }
+
+    .best-bar-marker {
+      position: absolute;
+      top: -3px;
+      bottom: -3px;
+      width: 2px;
+      background: rgba(255, 255, 255, 0.9);
+      transform: translateX(-1px);
+      border-radius: 1px;
+      box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.3);
+    }
+
+    .best-row-stats {
+      font-family: "DM Mono", Consolas, "Courier New", monospace;
+      font-size: 11px;
+      color: var(--text-3);
+      white-space: nowrap;
+      text-align: right;
+    }
+
+    .best-row-stats strong {
+      color: var(--text);
+      font-weight: 600;
+    }
+
+    .table-card {
+      border-radius: 12px;
+      overflow: hidden;
+      margin-top: var(--performance-section-gap);
+    }
+
+    .table-topbar {
+      padding: 13px 20px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: var(--surface-2);
+    }
+
+    .table-topbar-lbl {
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.09em;
+      text-transform: uppercase;
+      color: var(--text-3);
+    }
+
+    .table-actions {
+      display: flex;
+      gap: 8px;
+    }
+
+    .tbl-btn {
+      font-size: 12.5px;
+      font-weight: 500;
+      color: var(--text-2);
+      background: var(--surface);
+      border: 1px solid var(--border-mid);
+      border-radius: 7px;
+      padding: 6px 14px;
+    }
+
+    .tbl-btn:hover {
+      background: #e8e8e8;
+      color: var(--text);
+    }
+
+    .tbl-btn.danger:hover {
+      background: #fff0f0;
+      border-color: #f5c0c0;
+      color: #c00;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    thead th {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--text-3);
+      text-align: left;
+      padding: 10px 20px;
+      border-bottom: 1px solid var(--border);
+      letter-spacing: 0.03em;
+      background: var(--surface);
+    }
+
+    tbody tr {
+      border-bottom: 1px solid var(--border);
+      cursor: pointer;
+      transition: background 0.1s ease;
+    }
+
+    tbody tr:last-child {
+      border-bottom: none;
+    }
+
+    tbody tr:hover {
+      background: #f7f7f7;
+    }
+
+    tbody td {
+      font-size: 13px;
+      color: var(--text);
+      padding: 11px 20px;
+    }
+
+    td.mono {
+      font-family: "DM Mono", Consolas, "Courier New", monospace;
+      font-size: 13px;
+      font-weight: 500;
+    }
+
+    td.muted {
+      color: var(--text-2);
+      font-size: 12px;
+      font-family: "DM Mono", Consolas, "Courier New", monospace;
+    }
+
+    .empty-state {
+      padding: 38px 20px;
+      text-align: center;
+      color: var(--text-3);
+      font-size: 14px;
+    }
+
+    /* Hard switch. When the exam is active, #examScreen becomes an opaque
+       fixed cover pinned to the viewport. Keep both the old explicit edges
+       and modern inset shorthand: some Qt WebEngine builds mishandle inset,
+       while 100vw/100vh can create high-DPI scaling gaps. */
+    #examScreen {
+      display: none;
+      flex-direction: column;
+      background: var(--body-bg);
+    }
+
+    body.exam-active > #examScreen {
+      display: flex;
+      flex-direction: column;
+      position: fixed;
+      top: 0;
+      right: 0;
+      bottom: 0;
+      left: 0;
+      inset: 0;
+      z-index: 500;
+      background: var(--body-bg);
+      overflow: hidden;
+    }
+
+    body.exam-active > .app-header,
+    body.exam-active > .app-nav,
+    body.exam-active > main,
+    body.exam-active > #landingScreen {
+      display: none !important;
+    }
+
+    /* ── Landing / rest screen ──
+       Shown on first load. Same design language as the app, but polished:
+       gradient mesh background, subtle decorative blobs, refined typography,
+       feature pills, breathing logo. Click anywhere to enter. */
+    #landingScreen {
+      position: fixed;
+      top: 0;
+      right: 0;
+      bottom: 0;
+      left: 0;
+      z-index: 1500;
+      background:
+        radial-gradient(circle at 20% 25%, rgba(42, 158, 80, 0.06), transparent 50%),
+        radial-gradient(circle at 80% 75%, rgba(50, 90, 200, 0.05), transparent 50%),
+        linear-gradient(180deg, #fafafa 0%, #f0f0f0 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      transition: opacity 0.5s ease, visibility 0.5s ease;
+    }
+
+    #landingScreen.dismissed {
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none;
+    }
+
+    /* Decorative blurred blobs floating in the background */
+    #landingScreen::before,
+    #landingScreen::after {
+      content: "";
+      position: absolute;
+      border-radius: 50%;
+      filter: blur(60px);
+      opacity: 0.45;
+      pointer-events: none;
+      animation: landing-float 14s ease-in-out infinite;
+    }
+
+    #landingScreen::before {
+      width: 380px;
+      height: 380px;
+      background: rgba(42, 158, 80, 0.18);
+      top: -120px;
+      left: -120px;
+    }
+
+    #landingScreen::after {
+      width: 460px;
+      height: 460px;
+      background: rgba(50, 90, 200, 0.14);
+      bottom: -160px;
+      right: -160px;
+      animation-delay: -7s;
+    }
+
+    @keyframes landing-float {
+      0%, 100% { transform: translate(0, 0); }
+      50%      { transform: translate(20px, -30px); }
+    }
+
+    .landing-content {
+      position: relative;
+      z-index: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      padding: 48px;
+      max-width: 520px;
+      animation: landing-fade-in 0.7s cubic-bezier(.22,.9,.34,1) both;
+    }
+
+    @keyframes landing-fade-in {
+      from { opacity: 0; transform: translateY(14px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .landing-logo {
+      width: 104px;
+      height: 104px;
+      border-radius: 26px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      box-shadow:
+        0 18px 48px rgba(0, 0, 0, 0.10),
+        0 4px 12px rgba(0, 0, 0, 0.06),
+        0 0 0 6px rgba(255, 255, 255, 0.6);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 32px;
+      overflow: hidden;
+      animation: landing-breathe 4s ease-in-out infinite;
+    }
+
+    @keyframes landing-breathe {
+      0%, 100% { transform: scale(1); }
+      50%      { transform: scale(1.025); }
+    }
+
+    .landing-logo img {
+      width: 72px;
+      height: 72px;
+      object-fit: contain;
+      display: block;
+    }
+
+    .landing-title {
+      font-size: 56px;
+      font-weight: 700;
+      letter-spacing: -0.045em;
+      line-height: 1;
+      margin-bottom: 14px;
+      background: linear-gradient(180deg, #1a1a1a 0%, #4a4a4a 100%);
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .landing-sub {
+      font-size: 17px;
+      font-weight: 400;
+      color: var(--text-3);
+      margin-bottom: 32px;
+      letter-spacing: -0.01em;
+      line-height: 1.45;
+      max-width: 380px;
+    }
+
+    .landing-features {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+
+    .landing-feature {
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--text-2);
+      background: rgba(255, 255, 255, 0.7);
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      padding: 6px 14px;
+      backdrop-filter: blur(8px);
+      letter-spacing: 0.01em;
+    }
+
+    .exam-header {
+      background: var(--header-bg);
+      height: 58px;
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 clamp(14px, 3vw, 28px);
+    }
+
+    .exam-title {
+      font-size: 16px;
+      font-weight: 600;
+      color: #f2f2f2;
+      letter-spacing: -0.2px;
+    }
+
+    .exam-controls {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .timer-pill {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(255, 255, 255, 0.1);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: 8px;
+      padding: 7px 14px;
+    }
+
+    .timer-icon {
+      color: #aaa;
+      font-size: 13px;
+    }
+
+    .timer-val {
+      font-family: "DM Mono", Consolas, "Courier New", monospace;
+      font-size: 14px;
+      font-weight: 500;
+      color: #f2f2f2;
+      letter-spacing: 0.02em;
+    }
+
+    .pause-btn {
+      width: 36px;
+      height: 36px;
+      background: rgba(255, 255, 255, 0.1);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #ccc;
+      font-size: 13px;
+    }
+
+    .pause-btn:hover {
+      background: rgba(255, 255, 255, 0.18);
+      color: #fff;
+    }
+
+    .exit-btn {
+      font-size: 13px;
+      font-weight: 600;
+      color: #fff;
+      background: var(--danger);
+      border: none;
+      border-radius: 8px;
+      padding: 8px 18px;
+      cursor: pointer;
+      transition: opacity 0.15s ease;
+    }
+
+    .exit-btn:hover {
+      opacity: 0.85;
+    }
+
+    .exam-body {
+      flex: 1;
+      overflow-y: auto;
+      padding: clamp(16px, 3vw, 32px) clamp(12px, 2.5vw, 28px) 100px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .exam-content {
+      width: 100%;
+      max-width: min(880px, 94vw);
+      display: none;
+      flex-direction: column;
+      gap: 0;
+    }
+
+    .exam-content.active {
+      display: flex;
+    }
+
+    .exam-content > * + * {
+      margin-top: 18px;
+    }
+
+    .section-info,
+    .banner,
+    .context-box {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 14px 18px;
+      box-shadow: var(--shadow);
+    }
+
+    .section-info {
+      font-size: 13px;
+      color: var(--text-2);
+      line-height: 1.6;
+    }
+
+    .banner {
+      font-size: 13px;
+      line-height: 1.6;
+    }
+
+    .banner.score {
+      border-left: 4px solid var(--accent);
+    }
+
+    .banner.timeup {
+      border-left: 4px solid var(--danger);
+      color: #8a1f1f;
+      background: #fff1f1;
+    }
+
+    .questions-wrap {
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+    }
+
+    .questions-wrap > [class^="q-block-"] + [class^="q-block-"] {
+      margin-top: 20px;
+    }
+
+    .q-block-mc,
+    .q-block-essay,
+    .q-block-fill {
+      border-radius: 14px;
+      padding: 20px 22px;
+    }
+
+    .q-head {
+      display: flex;
+      align-items: flex-start;
+      gap: 14px;
+      margin-bottom: 14px;
+    }
+
+    .q-number {
+      min-width: 48px;
+      font-family: "DM Mono", Consolas, "Courier New", monospace;
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text-2);
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      padding-top: 3px;
+    }
+
+    .q-body {
+      flex: 1;
+    }
+
+    .q-text {
+      font-size: 16px;
+      font-weight: 500;
+      line-height: 1.5;
+      color: var(--text);
+      /* Defensive: very long unbroken strings (e.g. extracted PDF text with
+         missing spaces) must wrap inside the card rather than overflow it. */
+      overflow-wrap: anywhere;
+    }
+
+    .context-box {
+      margin-bottom: 14px;
+      font-size: 13px;
+      line-height: 1.65;
+      color: var(--text-2);
+      background: var(--surface-2);
+    }
+
+    .mc-options {
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+    }
+
+    .mc-opt + .mc-opt {
+      margin-top: 14px;
+    }
+
+    .mc-multi-hint {
+      font-size: 11.5px;
+      font-weight: 600;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      color: var(--text-3);
+      margin-bottom: 8px;
+    }
+
+    .mc-opt {
+      display: flex;
+      gap: 0;
+      align-items: center;
+      min-height: 64px;
+      border: 1px solid var(--border-mid);
+      border-radius: 12px;
+      padding: 12px 16px;
+      background: #fff;
+      cursor: pointer;
+      transition: border-color 0.12s ease, background 0.12s ease, transform 0.08s ease;
+    }
+
+    .mc-opt:hover {
+      border-color: #999;
+      background: var(--surface-2);
+    }
+
+    .mc-opt.selected {
+      border-color: #1a1a1a;
+      background: #f0f0f0;
+    }
+
+    .mc-opt.correct {
+      border-color: #6fca91;
+      background: #eefaf2;
+    }
+
+    .mc-opt.wrong {
+      border-color: #e6a0a0;
+      background: #fdf2f2;
+    }
+
+    .opt-letter {
+      width: 28px;
+      height: 28px;
+      border-radius: 9px;
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: "DM Mono", Consolas, "Courier New", monospace;
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--text-2);
+      flex-shrink: 0;
+    }
+
+    .opt-text {
+      display: flex;
+      align-items: center;
+      min-height: 28px;
+      margin-left: 6px;
+      font-size: 14px;
+      line-height: 1.55;
+      color: var(--text);
+    }
+
+    .result-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      border-radius: 999px;
+      padding: 7px 10px;
+      margin-bottom: 12px;
+    }
+
+    .result-tag.correct {
+      color: var(--success);
+      background: rgba(47, 143, 89, 0.1);
+    }
+
+    .result-tag.incorrect {
+      color: var(--danger);
+      background: rgba(208, 48, 48, 0.1);
+    }
+
+    .result-tag.unanswered {
+      color: var(--warn);
+      background: rgba(181, 122, 0, 0.12);
+    }
+
+    .essay-toolbar {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      padding: 8px 10px;
+      border: 1px solid var(--border-mid);
+      border-bottom: none;
+      border-radius: 10px 10px 0 0;
+      background: #f5f5f5;
+    }
+
+    .tb-btn {
+      width: 28px;
+      height: 28px;
+      border-radius: 6px;
+      background: transparent;
+      color: var(--text-2);
+      border: 1px solid transparent;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    .tb-btn:hover {
+      background: #e0e0e0;
+      border-color: #ccc;
+    }
+
+    .tb-sep {
+      width: 1px;
+      height: 20px;
+      background: #ccc;
+      margin: 0 2px;
+    }
+
+    .essay-area {
+      width: 100%;
+      min-height: 170px;
+      resize: vertical;
+      border: 1px solid var(--border-mid);
+      border-radius: 0 0 10px 10px;
+      padding: 14px 16px;
+      font-size: 14px;
+      line-height: 1.6;
+      color: var(--text);
+      background: #fff;
+      outline: none;
+    }
+
+    .essay-area:focus {
+      border-color: #999;
+    }
+
+    /* contenteditable variant for open-ended answers */
+    div.essay-area {
+      resize: none;
+      max-height: 420px;
+      overflow-y: auto;
+      white-space: pre-wrap;
+      word-wrap: break-word;
+    }
+    div.essay-area ul,
+    div.essay-area ol {
+      padding-left: 8px;
+    }
+    div.essay-area:empty::before {
+      content: attr(data-placeholder);
+      color: rgba(0,0,0,0.32);
+      pointer-events: none;
+    }
+    div.essay-area[contenteditable="false"] {
+      background: var(--surface-2);
+      color: var(--text-2);
+    }
+
+    .essay-area ol,
+    .essay-area ul {
+      margin: 0.2em 0 0.2em 1.4em;
+      padding-left: 1.1em;
+      white-space: normal;
+    }
+
+    .essay-area li {
+      margin: 0.1em 0;
+    }
+
+    .word-count {
+      margin-top: 8px;
+      text-align: right;
+      font-size: 12px;
+      color: var(--text-3);
+    }
+
+    .word-count.limit {
+      color: var(--danger);
+      font-weight: 700;
+    }
+
+    .suggested-answer {
+      margin-top: 12px;
+      background: #eefaf2;
+      border: 1px solid #a9dfbf;
+      border-left: 4px solid var(--success);
+      border-radius: 10px;
+      padding: 12px 14px;
+      font-size: 13px;
+      line-height: 1.6;
+      color: #1f6b3f;
+    }
+
+    .ai-check-btn {
+      margin-top: 10px;
+      background: #4a3aa8;
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      padding: 8px 16px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.15s ease, opacity 0.15s ease;
+    }
+
+    .ai-check-btn:hover:not(:disabled) {
+      background: #3a2c8a;
+    }
+
+    .ai-check-btn:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+
+    .ai-feedback {
+      margin-top: 10px;
+      background: #f4f0fa;
+      border: 1px solid #c5b3e0;
+      border-left: 4px solid #7d3cad;
+      border-radius: 10px;
+      padding: 12px 14px;
+      font-size: 13px;
+      line-height: 1.6;
+      color: #4a1a7a;
+      white-space: pre-wrap;
+    }
+
+    .ai-feedback.error {
+      background: #fff1f1;
+      border-color: #f5c0c0;
+      border-left-color: var(--danger);
+      color: #8a1f1f;
+    }
+
+    .fill-template {
+      background: #f3f3f3;
+      border: 1px solid #d9d9d9;
+      border-radius: 10px;
+      padding: 12px 14px;
+      margin-top: 8px;
+    }
+
+    .fill-template-line {
+      display: block;
+      line-height: 1.45;
+      margin-bottom: 2px;
+    }
+
+    .fill-template-line:last-child {
+      margin-bottom: 0;
+    }
+
+    .fill-template-text {
+      display: inline;
+      font-family: "DM Mono", Consolas, "Courier New", monospace;
+      font-size: 13px;
+      color: #333;
+      white-space: pre-wrap;
+    }
+
+    .fill-select {
+      display: inline-block;
+      vertical-align: middle;
+      min-width: 120px;
+      max-width: min(260px, 70vw);
+      margin: 0 4px;
+      border: 2px solid #4a90c4;
+      border-radius: 8px;
+      background: #fff;
+      padding: 5px 10px;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text);
+    }
+
+    .fill-select:disabled {
+      opacity: 0.85;
+    }
+
+    .fill-result {
+      font-size: 12px;
+      font-weight: 700;
+      margin-left: 6px;
+    }
+
+    .fill-result.correct {
+      color: var(--success);
+    }
+
+    .fill-result.wrong {
+      color: var(--danger);
+    }
+
+    /* Per-blank verdict, rendered as its own block BELOW the templated
+       sentence (never inline — inline collided with the template text). */
+    .fill-results {
+      margin-top: 10px;
+      padding-top: 10px;
+      border-top: 1px solid #d9d9d9;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .fill-result-row {
+      font-size: 12.5px;
+      font-weight: 600;
+    }
+
+    .fill-result-row.correct {
+      color: var(--success);
+    }
+
+    .fill-result-row.wrong {
+      color: var(--danger);
+    }
+
+    .submit-bar {
+      position: fixed;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(220, 220, 220, 0.96);
+      backdrop-filter: blur(4px);
+      border-top: 1px solid rgba(0, 0, 0, 0.07);
+      padding: 18px 24px;
+      display: flex;
+      justify-content: center;
+      z-index: 420;
+    }
+
+    .activate-ai-btn {
+      padding: 10px 18px;
+      margin-left: 8px;
+      margin-right: 8px;
+      font-size: 13px;
+      font-weight: 600;
+      letter-spacing: 0.01em;
+      background: #2a9e50;
+      color: #ffffff;
+      border: 1px solid #248a45;
+      border-radius: 12px;
+      cursor: pointer;
+      white-space: nowrap;
+      box-shadow: 0 1px 2px rgba(42, 158, 80, 0.25);
+      transition: filter 0.15s ease, transform 0.05s ease;
+    }
+
+    .activate-ai-btn:hover {
+      filter: brightness(1.06);
+    }
+
+    .activate-ai-btn:active {
+      transform: translateY(1px);
+      filter: brightness(0.94);
+    }
+
+    .activate-ai-btn.hidden {
+      display: none;
+    }
+
+    .modal-overlay {
+      position: fixed;
+      top: 0;
+      right: 0;
+      bottom: 0;
+      left: 0;
+      background: rgba(34, 34, 34, 0.26);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+      z-index: 900;
+    }
+
+    .modal-overlay.open {
+      display: flex;
+    }
+
+    .modal-win {
+      width: min(760px, 100%);
+      max-height: calc(100vh - 48px);
+      overflow: hidden;
+      background: #fff;
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      box-shadow: 0 16px 32px rgba(0, 0, 0, 0.12);
+      display: flex;
+      flex-direction: column;
+    }
+
+    .modal-titlebar {
+      padding: 14px 18px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      background: var(--surface-2);
+      flex-shrink: 0;
+    }
+
+    .traffic {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .dot {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+    }
+
+    .dot.red { background: #ff5f57; }
+    .dot.yel { background: #febc2e; }
+    .dot.grn { background: #28c840; }
+
+    .dot.close-modal-dot {
+      cursor: pointer;
+      transition: filter 0.15s ease, transform 0.15s ease;
+    }
+    .dot.close-modal-dot:hover {
+      filter: brightness(0.85);
+      transform: scale(1.1);
+    }
+
+    .title-text {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text);
+    }
+
+    .modal-body {
+      padding: 20px 22px;
+      overflow-y: auto;
+      font-size: 14px;
+      color: var(--text);
+      line-height: 1.7;
+      flex: 1;
+    }
+
+    .modal-footer {
+      border-top: 1px solid var(--border);
+      padding: 14px 18px;
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+      background: #fafafa;
+      flex-shrink: 0;
+    }
+
+    .mbtn {
+      font-size: 13px;
+      font-weight: 600;
+      border-radius: 8px;
+      padding: 9px 16px;
+      cursor: pointer;
+    }
+
+    .review-meta {
+      padding: 12px 22px 0;
+      font-size: 13px;
+      color: var(--text-3);
+    }
+
+    .review-meta .pipe {
+      margin: 0 8px;
+      color: #d0d0d0;
+    }
+
+    .review-section {
+      margin-bottom: 24px;
+    }
+
+    .review-section-title {
+      margin: 0 0 12px;
+      padding: 8px 14px;
+      font-size: 13px;
+      font-weight: 600;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      color: var(--text-2);
+      background: var(--surface-2);
+      border-left: 3px solid var(--accent);
+      border-radius: 6px;
+    }
+
+    .review-card {
+      border: 1px solid var(--border);
+      border-left: 4px solid #ccc;
+      border-radius: 10px;
+      padding: 14px 16px;
+      margin-bottom: 14px;
+      background: #fff;
+    }
+
+    .review-card.correct {
+      border-left-color: var(--success);
+      background: #fbfefc;
+    }
+
+    .review-card.incorrect {
+      border-left-color: var(--danger);
+      background: #fff9f9;
+    }
+
+    .review-card.unanswered {
+      border-left-color: var(--warn);
+      background: #fffcf5;
+    }
+
+    .review-card h4 {
+      font-size: 15px;
+      margin-bottom: 10px;
+      line-height: 1.5;
+    }
+
+    .review-option,
+    .review-line {
+      font-size: 13px;
+      line-height: 1.6;
+      margin: 5px 0;
+      color: var(--text-2);
+    }
+
+    .review-rich-answer {
+      margin-top: 6px;
+      padding: 10px 12px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: var(--surface-2);
+      color: var(--text-2);
+      white-space: normal;
+    }
+
+    .review-rich-answer ol,
+    .review-rich-answer ul {
+      margin: 0.2em 0 0.2em 1.4em;
+      padding-left: 1.1em;
+    }
+
+    .review-rich-answer li {
+      margin: 0.1em 0;
+    }
+
+    .review-option.correct,
+    .review-line.correct {
+      color: var(--success);
+      font-weight: 600;
+    }
+
+    .review-option.wrong,
+    .review-line.wrong {
+      color: var(--danger);
+      font-weight: 600;
+    }
+
+    .toast-stack {
+      position: fixed;
+      right: 18px;
+      bottom: 18px;
+      z-index: 1200;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      pointer-events: none;
+    }
+
+    .toast {
+      min-width: 260px;
+      max-width: 420px;
+      padding: 12px 14px;
+      border-radius: 10px;
+      color: #fff;
+      background: rgba(44, 44, 44, 0.94);
+      box-shadow: 0 10px 24px rgba(0, 0, 0, 0.18);
+      font-size: 13px;
+      line-height: 1.5;
+    }
+
+    .toast.error {
+      background: rgba(176, 32, 32, 0.96);
+    }
+
+    .toast.success {
+      background: rgba(47, 143, 89, 0.96);
+    }
+
+    @media (max-width: 760px), (max-height: 680px) {
+      .app-header {
+        height: 52px;
+        padding: 0 12px;
+      }
+
+      .brand {
+        gap: 0;
+        min-width: 0;
+      }
+
+      .brand-info {
+        margin-left: 8px;
+        min-width: 0;
+      }
+
+      .brand-info small {
+        display: none;
+      }
+
+      .help-btn {
+        padding: 6px 12px;
+      }
+
+      .tab,
+      .exam-tab {
+        padding: 12px 20px;
+      }
+
+      main {
+        padding: 14px 10px 48px;
+      }
+
+      #panel-setup,
+      #panel-performance {
+        max-width: 100%;
+      }
+
+      .drop-zone {
+        align-items: flex-start;
+        margin: 8px;
+        padding: 14px;
+      }
+
+      .drop-icon {
+        width: 44px;
+        height: 44px;
+        border-radius: 10px;
+        font-size: 18px;
+      }
+
+      .drop-text h3,
+      .drop-text p,
+      .sample-link {
+        overflow-wrap: anywhere;
+      }
+
+      .drop-text {
+        margin-left: 8px;
+      }
+
+      .section-title {
+        padding: 16px 18px 0;
+      }
+
+      .field-row {
+        align-items: stretch;
+        flex-direction: column;
+        gap: 8px;
+        padding: 12px 18px;
+      }
+
+      .field-lbl {
+        width: auto;
+      }
+
+      .txt-input,
+      .api-input {
+        min-width: 0;
+        width: 100%;
+      }
+
+      .dur-control {
+        flex-wrap: wrap;
+        gap: 8px;
+      }
+
+      .stepper-unit {
+        margin: 0 8px 0 2px;
+      }
+
+      .toggle-row {
+        padding: 14px 18px;
+      }
+
+      .start-wrap {
+        padding: 18px 0;
+      }
+
+      .start-btn,
+      .submit-btn {
+        width: calc(100% - 32px);
+        max-width: 320px;
+        padding: 13px 24px;
+        text-align: center;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div id="landingScreen">
+    <div class="landing-content">
+      <div class="landing-logo">
+        <img src="icons/icon_128x128.png" alt="WiseMock">
+      </div>
+      <div class="landing-title">WiseMock</div>
+      <div class="landing-sub">Turn study material into timed mock exams in seconds.</div>
+      <div class="landing-features">
+        <span class="landing-feature">📄 PDF · DOCX · PPTX</span>
+        <span class="landing-feature">✨ AI-powered</span>
+        <span class="landing-feature">⏱ Timed exams</span>
+      </div>
+    </div>
+  </div>
+
+  <header class="app-header">
+    <div class="brand">
+      <div class="logo"><img src="icons/icon_64x64.png" alt="WiseMock"></div>
+      <div class="brand-info">
+        <strong>WiseMock</strong>
+        <small>by students, for students</small>
+      </div>
+    </div>
+    <button class="help-btn" id="helpBtn">Help</button>
+  </header>
+
+  <nav class="app-nav">
+    <button class="tab active" data-panel="setup">Setup</button>
+    <button class="tab" data-panel="performance">Performance</button>
+  </nav>
+
+  <main>
+    <section id="panel-setup">
+      <div class="drop-card">
+        <div class="drop-zone" id="dropZone">
+          <div class="drop-icon" id="dropIcon">
+            <span id="dropIconGlyph" aria-hidden="true">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                <path d="M4.5 8h5.8l1.9 2h7.3v7.5a1.5 1.5 0 0 1-1.5 1.5H4.5V8Z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/>
+                <path d="M4.5 8V5.8h5.2l2 2.2" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </span>
+            <svg class="drop-progress" id="dropProgressRing" viewBox="0 0 36 36" aria-hidden="true">
+              <circle class="track" cx="18" cy="18" r="14"></circle>
+              <circle class="fill" id="dropProgressFill" cx="18" cy="18" r="14"></circle>
+            </svg>
+            <span class="drop-progress-text" id="dropProgressText">0%</span>
+          </div>
+          <div class="drop-text">
+            <h3 id="dropTitle">Drop study files or WiseMock JSON here</h3>
+            <p id="dropSub">PDF, DOCX, and PPTX become study material. JSON loads a saved WiseMock exam.</p>
+            <div class="drop-linear-progress" aria-hidden="true">
+              <div class="drop-linear-progress-fill" id="dropLinearProgressFill"></div>
+            </div>
+          </div>
+        </div>
+        <div class="sample-action-row" id="sampleActionRow">
+          <button type="button" class="sample-link" id="sampleExamLink">Try sample exam</button>
+        </div>
+        <div class="drop-divider hidden" id="genDivider"></div>
+        <div class="generator-panel hidden" id="generatorPanel">
+          <h4>Generation Options</h4>
+          <div class="generator-grid">
+            <div class="mini-field">
+              <label for="genDifficulty">Difficulty
+                <span class="difficulty-readout"><span id="genDifficultyValue">5</span> / 10 · <span id="genDifficultyLabel">Moderate</span></span>
+              </label>
+              <input type="range" id="genDifficulty" class="difficulty-slider" min="1" max="10" value="5" step="1">
+            </div>
+            <div class="mini-field">
+              <label for="genSize">Exam Size</label>
+              <select id="genSize">
+                <option value="small">Small (~10 Q)</option>
+                <option value="medium" selected>Medium (~20 Q)</option>
+                <option value="large">Large (~30 Q)</option>
+                <option value="custom">Custom</option>
+              </select>
+              <div class="mini-field custom-size-field" id="customSizeField">
+                <label for="genCustomQuestionCount">Custom question count</label>
+                <input type="number" id="genCustomQuestionCount" min="1" max="200" step="1" value="24">
+              </div>
+            </div>
+          </div>
+          <div class="mini-field">
+            <label>Question Types</label>
+            <div class="generator-types">
+              <label class="check-chip"><input type="checkbox" id="genTypeMc" checked> Multiple choice</label>
+              <label class="check-chip"><input type="checkbox" id="genTypeOpen" checked> Open-ended</label>
+              <label class="check-chip"><input type="checkbox" id="genTypeFill" checked> Fill in the blank</label>
+            </div>
+          </div>
+          <div class="status-line" id="generatorStatus"></div>
+          <button class="primary-btn" id="generateBtn">Generate Exam</button>
+        </div>
+      </div>
+
+      <div class="settings-card">
+        <div class="section">
+          <div class="section-title">Exam Info</div>
+          <div class="field-row">
+            <div class="field-lbl">Title</div>
+            <input class="txt-input" id="examTitleInput" placeholder="e.g. Data Structures [6 pts]">
+          </div>
+          <div class="field-row">
+            <div class="field-lbl">Duration</div>
+            <div class="dur-control">
+              <div class="stepper">
+                <button class="stepper-btn" id="hoursMinus">−</button>
+                <input class="stepper-val" id="hoursVal" type="text" inputmode="numeric" maxlength="2" value="1">
+                <button class="stepper-btn" id="hoursPlus">+</button>
+              </div>
+              <span class="stepper-unit">hour</span>
+              <div class="stepper">
+                <button class="stepper-btn" id="minsMinus">−</button>
+                <input class="stepper-val" id="minsVal" type="text" inputmode="numeric" maxlength="2" value="00">
+                <button class="stepper-btn" id="minsPlus">+</button>
+              </div>
+              <span class="stepper-unit">min</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="section">
+          <div class="section-title">Questions</div>
+          <label class="toggle-row">
+            <div class="toggle-text">
+              <strong>Shuffle question order</strong>
+            </div>
+            <input type="checkbox" id="toggleShuffleQuestions">
+            <span class="toggle-switch"></span>
+          </label>
+          <label class="toggle-row">
+            <div class="toggle-text">
+              <strong>Shuffle answer options</strong>
+            </div>
+            <input type="checkbox" id="toggleShuffleOptions">
+            <span class="toggle-switch"></span>
+          </label>
+        </div>
+
+        <div class="section">
+          <div class="section-title">Behaviour</div>
+          <label class="toggle-row">
+            <div class="toggle-text">
+              <strong>Launch in fullscreen</strong>
+              <small>Hides distractions during the exam</small>
+            </div>
+            <input type="checkbox" id="toggleFullscreen" checked>
+            <span class="toggle-switch"></span>
+          </label>
+        </div>
+
+        <div class="section ai-section">
+          <div class="section-title">AI Features - Groq</div>
+          <div class="api-note">
+            A free Groq API key powers exam generation from PDF/DOCX/PPTX study material and reviews open-ended answers after the exam. Get one at <a class="external-link" data-href="https://console.groq.com/keys">console.groq.com/keys</a>.
+          </div>
+          <div class="field-row">
+            <div class="field-lbl">API Key</div>
+            <input class="api-input" id="apiKeyInput" placeholder="gsk_..." type="password">
+          </div>
+        </div>
+      </div>
+
+      <div class="bottom-card">
+        <div class="start-wrap">
+          <button class="start-btn" id="startBtn" disabled>Start Exam</button>
+        </div>
+      </div>
+    </section>
+
+    <section id="panel-performance">
+      <div class="perf-heading">
+        <h2>Performance</h2>
+        <p>Track your mock history, scores, and review past attempts.</p>
+      </div>
+      <div class="stats-row">
+        <div class="stat-card"><div class="stat-val" id="statTotal">0</div><div class="stat-lbl">Total Exams</div></div>
+        <div class="stat-card"><div class="stat-val" id="statAverage">-</div><div class="stat-lbl">Average Score</div></div>
+        <div class="stat-card"><div class="stat-val" id="statBest">-</div><div class="stat-lbl">Best Score</div></div>
+        <div class="stat-card"><div class="stat-val" id="statTime">0m</div><div class="stat-lbl">Study Time</div></div>
+      </div>
+      <div class="charts-row hidden" id="chartsRow">
+        <div class="chart-card" id="progressionCard">
+          <div class="chart-header">
+            <div class="chart-title">Score progression</div>
+            <div class="chart-sub" id="progressionSub">—</div>
+          </div>
+          <div class="chart-body" id="progressionBody"></div>
+        </div>
+        <div class="chart-card hidden" id="bestPerExamCard">
+          <div class="chart-header">
+            <div class="chart-title">Best score by exam</div>
+            <div class="chart-sub">filled bar = best · marker = avg</div>
+          </div>
+          <div class="chart-body" id="bestPerExamBody"></div>
+        </div>
+      </div>
+      <div class="table-card">
+        <div class="table-topbar">
+          <div class="table-topbar-lbl">Exam History</div>
+          <div class="table-actions">
+            <button class="tbl-btn" id="refreshHistoryBtn">Refresh</button>
+            <button class="tbl-btn danger" id="clearHistoryBtn">Clear</button>
+          </div>
+        </div>
+        <div class="empty-state hidden" id="historyEmpty">No exams yet - complete a mock to see your history here.</div>
+        <table id="historyTable">
+          <thead>
+            <tr>
+              <th>Date</th>
+              <th>Title</th>
+              <th>Score</th>
+              <th>Questions</th>
+              <th>Time</th>
+            </tr>
+          </thead>
+          <tbody id="historyBody"></tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+
+  <div id="examScreen">
+    <div class="exam-header">
+      <div class="exam-title" id="examScreenTitle">Mock Exam</div>
+      <div class="exam-controls">
+        <div class="timer-pill">
+          <span class="timer-icon">◷</span>
+          <span class="timer-val" id="timerDisplay">01:00:00</span>
+        </div>
+        <button class="pause-btn" id="pauseBtn" title="Pause">||</button>
+        <button class="exit-btn" id="exitExamBtn">Exit</button>
+      </div>
+    </div>
+    <div class="exam-nav" id="examNav"></div>
+    <div class="exam-body">
+      <div class="exam-content active" id="examEmptyState">
+        <div class="section-info">No exam loaded.</div>
+      </div>
+      <div id="examSectionsRoot" style="width:100%; display:flex; flex-direction:column; align-items:center;"></div>
+    </div>
+    <div class="submit-bar">
+      <button class="secondary-btn hidden" id="prevSectionBtn" type="button">← Previous</button>
+      <button class="secondary-btn hidden" id="reviewMistakesBtn">Review Mistakes</button>
+      <button class="secondary-btn hidden" id="aiStudyReportBtn">AI Study Report</button>
+      <button class="secondary-btn hidden" id="submitBarExportExamBtn" type="button"
+              title="Save this exam as a .exam.json file you can re-import without using AI again.">Export Exam File</button>
+      <button class="activate-ai-btn hidden" id="activateAiBtn" type="button" title="Add a Groq API key to unlock AI features">✨ Activate AI</button>
+      <button class="next-section-btn hidden" id="nextSectionBtn" type="button">Next Section →</button>
+      <button class="submit-btn hidden" id="submitExamBtn">Submit Exam</button>
+    </div>
+  </div>
+
+  <div class="modal-overlay" id="helpModal">
+    <div class="modal-win">
+      <div class="modal-titlebar">
+        <div class="traffic"><div class="dot red close-modal-dot" title="Close"></div></div>
+        <span class="title-text">How to use WiseMock</span>
+      </div>
+      <div class="modal-body">
+        <h2 style="margin-bottom:12px;">How to use WiseMock</h2>
+        <h3 style="margin-bottom:8px;">Getting started</h3>
+        <ol style="padding-left:20px; margin-bottom:18px;">
+          <li>Drag a file into the drop zone or click to browse.</li>
+          <li>Configure your exam settings on the setup panel.</li>
+          <li>Click <strong>Start Exam</strong> and begin.</li>
+        </ol>
+        <h3 style="margin-bottom:8px;">Supported files</h3>
+        <ul style="padding-left:20px; margin-bottom:18px;">
+          <li><strong>.json</strong> - WiseMock exam JSON files</li>
+          <li><strong>.pdf</strong> - PDF study material for AI generation</li>
+          <li><strong>.docx</strong> - Word study documents</li>
+          <li><strong>.pptx</strong> - PowerPoint study slides</li>
+        </ul>
+        <h3 style="margin-bottom:8px;">WiseMock JSON structure</h3>
+        <p style="margin-bottom:8px;">You can create your own JSON file and load it directly. Here is a tiny Portuguese survival exam:</p>
+        <pre style="white-space:pre-wrap; background:#f7f7f7; border:1px solid #ddd; border-radius:8px; padding:10px; font-size:12px; margin-bottom:18px;">{
+  "title": "Portuguese Survival Exam",
+  "questions": [
+    {"id":"q1","type":"mc","title":"What is the correct emergency move when someone offers you a pastel de Belem?","options":["Refuse politely","Ask for a salad instead","Eat it before it gets cold","Start a spreadsheet about custard"],"correct_answer":"C"},
+    {"id":"q2","type":"fill_blank","title":"Complete the sentence:","template":"The capital of Portugal is {0}.","blanks":[["Porto","Lisbon","Madrid","Pastelaria"]],"correct_answers":[1]},
+    {"id":"q3","type":"open","title":"Explain why coffee and a pastel de nata can be a valid study strategy before an exam.","suggested_answer":"A strong answer mentions morale, energy, cultural wisdom, and not covering the keyboard in custard.","max_words":120}
+  ],
+  "sections": [
+    {"name":"Section I","questions":["q1","q2","q3"]}
+  ]
+}</pre>
+        <h3 style="margin-bottom:8px;">Groq AI features</h3>
+        <p style="margin-bottom:8px;">PDF, Word, and PowerPoint files can be transformed into mocks with AI. Open answers can also be reviewed after submission.</p>
+        <p style="margin-bottom:14px;">Get a free API key at <a class="external-link" data-href="https://console.groq.com/keys">console.groq.com/keys</a>, then paste it in the API Key field on the setup screen. The key is kept only in memory.</p>
+        <h3 style="margin-bottom:8px;">After the exam</h3>
+        <ul style="padding-left:20px;">
+          <li>Review mistakes directly in the app</li>
+          <li>Export a PDF review from the Performance tab</li>
+          <li>Generate an AI study report based on your attempt</li>
+        </ul>
+      </div>
+      <div class="modal-footer">
+        <button class="mbtn primary" data-close-modal="helpModal">Got it!</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-overlay" id="reviewModal">
+    <div class="modal-win">
+      <div class="modal-titlebar">
+        <div class="traffic"><div class="dot red close-modal-dot" title="Close"></div></div>
+        <span class="title-text" id="reviewTitle">Review</span>
+      </div>
+      <div class="review-meta" id="reviewMeta"></div>
+      <div class="modal-body" id="reviewBody"></div>
+      <div class="modal-footer">
+        <button class="mbtn secondary hidden" id="reviewExportBtn">Export PDF</button>
+        <button class="mbtn secondary hidden" id="reviewExportExamBtn"
+                title="Save this exam as a .exam.json file you can re-import without using AI again.">Export Exam File</button>
+        <button class="mbtn primary" data-close-modal="reviewModal">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-overlay" id="exitModal">
+    <div class="modal-win" style="max-width:460px;">
+      <div class="modal-titlebar">
+        <div class="traffic"><div class="dot red close-modal-dot" title="Close"></div></div>
+        <span class="title-text">Exit Exam</span>
+      </div>
+      <div class="modal-body" style="text-align:center;">
+        <div style="font-size:34px; margin-bottom:10px;">&#9888;</div>
+        <h3 style="margin-bottom:10px;">Exit the exam?</h3>
+        <p>Your progress will be lost. This action cannot be undone.</p>
+      </div>
+      <div class="modal-footer">
+        <button class="mbtn secondary" data-close-modal="exitModal">No, keep going</button>
+        <button class="mbtn danger" id="confirmExitBtn">Yes, exit</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-overlay" id="aiReportModal">
+    <div class="modal-win">
+      <div class="modal-titlebar">
+        <div class="traffic"><div class="dot red close-modal-dot" title="Close"></div></div>
+        <span class="title-text">AI Study Report</span>
+      </div>
+      <div class="modal-body" id="aiReportBody">Waiting for report...</div>
+      <div class="modal-footer">
+        <button class="mbtn primary" data-close-modal="aiReportModal">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-overlay" id="apiKeyModal">
+    <div class="modal-win" style="max-width:480px;">
+      <div class="modal-titlebar">
+        <div class="traffic"><div class="dot red close-modal-dot" title="Close"></div></div>
+        <span class="title-text">Activate AI features</span>
+      </div>
+      <div class="modal-body">
+        <p style="margin-bottom:14px; color:var(--text-2); line-height:1.55;">
+          Paste your <strong>Groq API key</strong> to unlock the AI Study Report and per-question AI checks.
+          Your key stays in this session only — it isn't saved to disk.
+        </p>
+        <p style="margin-bottom:14px; color:var(--text-3); font-size:12px; line-height:1.5;">
+          Don't have one yet? Get a free key at <a class="external-link" data-href="https://console.groq.com/keys">console.groq.com/keys</a>.
+        </p>
+        <input type="password" id="postExamApiKeyInput" placeholder="gsk_..." autocomplete="off" spellcheck="false"
+               style="width:100%; padding:10px 12px; font-size:13px; font-family:'DM Mono',Consolas,'Courier New',monospace; background:var(--surface-2); border:1px solid var(--border); border-radius:8px; color:var(--text); outline:none;">
+      </div>
+      <div class="modal-footer">
+        <button class="mbtn secondary" data-close-modal="apiKeyModal">Cancel</button>
+        <button class="mbtn primary" id="postExamApiKeySaveBtn" type="button">Activate</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast-stack" id="toastStack"></div>
+
+  <script>
+    const state = {
+      defaults: {},
+      currentFile: null,
+      history: [],
+      exam: null,
+      examDraftAnswers: {},
+      activeExamSection: 0,
+      examSectionScrollTops: {},
+      reviewContext: null,
+      submittedHistoryId: null,
+      dur: { h: 1, m: 0 },
+      bridgeReady: false
+    };
+
+    function safeHtml(value) {
+      return String(value == null ? "" : value)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#39;");
+    }
+
+    // Renders a small subset of markdown safely for question/option/context text.
+    // Supports:
+    //   ```lang\n...code...\n```  →  <pre class="md-code-block lang-..."><code>...</code></pre>
+    //   `inline`                  →  <code class="md-inline-code">inline</code>
+    //   soft \n in plain prose    →  <br>
+    // Everything else is HTML-escaped — XSS-safe.
+    function renderInline(value) {
+      if (value == null) return "";
+      const text = String(value);
+      const esc = (s) => s
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#39;");
+      const tokenRe = /```([a-zA-Z0-9_+\-]*)\n?([\s\S]*?)```|`([^`\n]+)`/g;
+      let out = "";
+      let last = 0;
+      let m;
+      while ((m = tokenRe.exec(text)) !== null) {
+        if (m.index > last) {
+          out += esc(text.slice(last, m.index)).replace(/\n/g, "<br>");
+        }
+        if (m[1] !== undefined && m[2] !== undefined) {
+          const lang = m[1];
+          // Collapse multiple consecutive blank lines (extraction artifact from
+          // PDF/slides where each code line was a separate paragraph).
+          const code = m[2].replace(/\n$/, "").replace(/\n{3,}/g, "\n\n");
+          const cls = lang ? `md-code-block lang-${esc(lang)}` : "md-code-block";
+          out += `<pre class="${cls}"><code>${esc(code)}</code></pre>`;
+        } else if (m[3] !== undefined) {
+          out += `<code class="md-inline-code">${esc(m[3])}</code>`;
+        }
+        last = tokenRe.lastIndex;
+      }
+      if (last < text.length) {
+        out += esc(text.slice(last)).replace(/\n/g, "<br>");
+      }
+      return out;
+    }
+
+    function sanitizeRichAnswerHtml(value) {
+      const template = document.createElement("template");
+      template.innerHTML = String(value || "");
+      const allowedTags = new Set(["B", "I", "U", "STRONG", "EM", "OL", "UL", "LI", "BR", "DIV", "P"]);
+      const cleanNode = (node) => {
+        Array.from(node.childNodes).forEach((child) => {
+          if (child.nodeType === Node.ELEMENT_NODE) {
+            cleanNode(child);
+            if (!allowedTags.has(child.tagName)) {
+              child.replaceWith(...Array.from(child.childNodes));
+              return;
+            }
+            Array.from(child.attributes).forEach((attr) => child.removeAttribute(attr.name));
+          } else if (child.nodeType !== Node.TEXT_NODE) {
+            child.remove();
+          }
+        });
+      };
+      cleanNode(template.content);
+      return template.innerHTML;
+    }
+
+    function parsePayload(payload) {
+      try {
+        return JSON.parse(payload);
+      } catch (err) {
+        showToast("Failed to decode payload from Python.", "error");
+        return null;
+      }
+    }
+
+    function showToast(message, kind = "") {
+      const stack = document.getElementById("toastStack");
+      const node = document.createElement("div");
+      node.className = `toast ${kind}`.trim();
+      node.textContent = message;
+      stack.appendChild(node);
+      setTimeout(() => node.remove(), 3600);
+    }
+
+    function bridgeCall(method, payload) {
+      if (!window.bridge || typeof window.bridge[method] !== "function") {
+        showToast(`Bridge method unavailable: ${method}`, "error");
+        return;
+      }
+      if (payload === undefined) {
+        window.bridge[method]();
+      } else if (typeof payload === "string") {
+        window.bridge[method](payload);
+      } else {
+        window.bridge[method](JSON.stringify(payload));
+      }
+    }
+
+    function requiredApiKey(action) {
+      const apiKey = document.getElementById("apiKeyInput").value.trim();
+      if (!apiKey) {
+        showToast(`Enter your Groq API key before ${action}.`, "error");
+        return null;
+      }
+      return apiKey;
+    }
+
+    function openModal(id) {
+      document.getElementById(id).classList.add("open");
+    }
+
+    function closeModal(id) {
+      document.getElementById(id).classList.remove("open");
+    }
+
+    function switchPanel(name) {
+      document.querySelectorAll(".tab").forEach((tab) => {
+        tab.classList.toggle("active", tab.dataset.panel === name);
+      });
+      document.getElementById("panel-setup").style.display = name === "setup" ? "block" : "none";
+      document.getElementById("panel-performance").style.display = name === "performance" ? "flex" : "none";
+    }
+
+    function setDropState(title, subtext) {
+      document.getElementById("dropTitle").textContent = title;
+      document.getElementById("dropSub").textContent = subtext;
+      document.getElementById("sampleExamLink").classList.add("hidden");
+      document.getElementById("sampleActionRow").classList.add("hidden");
+    }
+
+    function resetDropState() {
+      document.getElementById("dropTitle").textContent = "Drop study files or WiseMock JSON here";
+      document.getElementById("dropSub").textContent = "PDF, DOCX, and PPTX become study material. JSON loads a saved WiseMock exam.";
+      document.getElementById("sampleExamLink").classList.remove("hidden");
+      document.getElementById("sampleActionRow").classList.remove("hidden");
+    }
+
+    function setDropLoading(percent, message) {
+      const safePercent = Math.max(0, Math.min(100, Number(percent) || 0));
+      const roundedPercent = Math.round(safePercent);
+      const circumference = 88;
+      document.getElementById("dropZone").classList.toggle("is-loading", true);
+      document.getElementById("dropProgressFill").style.strokeDashoffset =
+        String(circumference - (circumference * safePercent / 100));
+      document.getElementById("dropProgressText").textContent = `${roundedPercent}%`;
+      document.getElementById("dropLinearProgressFill").style.width = `${roundedPercent}%`;
+      setDropState("Loading document", `${roundedPercent}% - ${message || "Extracting text in the background"}`);
+    }
+
+    function clearDropLoading() {
+      document.getElementById("dropZone").classList.remove("is-loading");
+      document.getElementById("dropProgressFill").style.strokeDashoffset = "88";
+      document.getElementById("dropProgressText").textContent = "0%";
+      document.getElementById("dropLinearProgressFill").style.width = "0%";
+    }
+
+    function updateDuration() {
+      document.getElementById("hoursVal").value = String(state.dur.h);
+      document.getElementById("minsVal").value = String(state.dur.m).padStart(2, "0");
+    }
+
+    function clampHours(v)   { return Math.max(0, Math.min(12, v | 0)); }
+    function clampMinutes(v) { return Math.max(0, Math.min(59, v | 0)); }
+
+    function adjustDuration(unit, delta) {
+      if (unit === "h") {
+        state.dur.h = clampHours(state.dur.h + delta);
+      } else {
+        // 15-minute snap: round current to nearest 15, then step by 15
+        const snapped = Math.round(state.dur.m / 15) * 15;
+        let next = snapped + delta * 15;
+        if (next < 0)  next = 0;
+        if (next > 45) next = 45;   // cap at 45 since 60 = next hour
+        state.dur.m = next;
+      }
+      updateDuration();
+    }
+
+    function commitTypedHours() {
+      const raw = parseInt(document.getElementById("hoursVal").value, 10);
+      state.dur.h = isNaN(raw) ? 0 : clampHours(raw);
+      updateDuration();
+    }
+
+    function commitTypedMinutes() {
+      const raw = parseInt(document.getElementById("minsVal").value, 10);
+      state.dur.m = isNaN(raw) ? 0 : clampMinutes(raw);
+      updateDuration();
+    }
+
+    function startButtonText(payload, isLoading) {
+      if (isLoading) return "Loading document...";
+      if (payload.can_start) return "Start Exam";
+      if (payload.generation_busy) return "Generating exam...";
+      if (payload.show_generate) return "Generate exam first";
+      if (payload.file) return "Finish setup first";
+      return "Load an exam first";
+    }
+
+    function applySetupDefaults(defaults) {
+      state.defaults = defaults || {};
+      state.dur.h = defaults.duration_hours ?? 1;
+      state.dur.m = defaults.duration_minutes ?? 0;
+      updateDuration();
+      document.getElementById("toggleShuffleQuestions").checked = !!defaults.shuffle_questions;
+      document.getElementById("toggleShuffleOptions").checked = !!defaults.shuffle_options;
+      document.getElementById("toggleFullscreen").checked = defaults.launch_fullscreen !== false;
+      document.getElementById("apiKeyInput").value = defaults.api_key || "";
+      // Push the (possibly pre-filled) key to the bridge so multi-file drops
+      // can use it without waiting for a keystroke event.
+      bridgeCall("setCurrentApiKey", defaults.api_key || "");
+      if (!document.getElementById("examTitleInput").value) {
+        document.getElementById("examTitleInput").value = defaults.exam_title || "";
+      }
+    }
+
+    function applySetupFile(payload) {
+      if (!payload) {
+        return;
+      }
+      state.currentFile = payload;
+      const isLoading = !!payload.loading_document;
+      const startBtn = document.getElementById("startBtn");
+      const startText = startButtonText(payload, isLoading);
+      startBtn.disabled = isLoading || !payload.can_start;
+      startBtn.textContent = startText;
+      startBtn.title = payload.can_start ? "Start the loaded exam" : startText;
+      document.getElementById("generateBtn").disabled = isLoading || !!payload.generation_busy;
+      document.getElementById("generatorPanel").classList.toggle("hidden", !payload.show_generate);
+      document.getElementById("genDivider").classList.toggle("hidden", !payload.show_generate);
+      if (payload.generator_status !== undefined) {
+        document.getElementById("generatorStatus").textContent = payload.generator_status;
+      }
+      if (isLoading) {
+        setDropLoading(payload.loading_percent || 0, payload.loading_message || "");
+      } else {
+        clearDropLoading();
+      }
+      if (!isLoading && payload.file) {
+        setDropState(payload.file.name, payload.file.subtext);
+      } else if (!isLoading && !payload.file) {
+        resetDropState();
+      }
+      if (payload.title && !document.getElementById("examTitleInput").value.trim()) {
+        document.getElementById("examTitleInput").value = payload.title;
+      }
+    }
+
+    function _scoreColorClass(score) {
+      if (score >= 70) return "good";
+      if (score >= 40) return "mid";
+      return "poor";
+    }
+
+    function renderProgressionChart(progression) {
+      // Inline SVG line chart of attempt → score%. The SVG only contains
+      // shapes (lines / dots / paths) so we can use preserveAspectRatio=none
+      // to make them stretch to fill the card without distortion artifacts.
+      // All text labels live in HTML next to / below the SVG so they keep
+      // their natural aspect ratio at any container width.
+      const body = document.getElementById("progressionBody");
+      const sub = document.getElementById("progressionSub");
+      if (!progression || progression.length < 2) {
+        body.innerHTML = `<div class="chart-empty" style="text-align:center;color:var(--text-3);font-size:12px;padding:30px 0;">Take at least two exams to see your progression.</div>`;
+        sub.textContent = "";
+        return;
+      }
+      const W = 600, H = 180;
+      const padT = 8, padB = 8;
+      const innerH = H - padT - padB;
+      const n = progression.length;
+      const xAt = (i) => (n === 1 ? W / 2 : (W * i) / (n - 1));
+      const yAt = (s) => padT + innerH - (innerH * Math.max(0, Math.min(100, s))) / 100;
+
+      // Trend line via least-squares on (i, score)
+      let sumX = 0, sumY = 0, sumXY = 0, sumXX = 0;
+      progression.forEach((p, i) => {
+        sumX += i; sumY += p.score; sumXY += i * p.score; sumXX += i * i;
+      });
+      const denom = n * sumXX - sumX * sumX;
+      const slope = denom === 0 ? 0 : (n * sumXY - sumX * sumY) / denom;
+      const intercept = (sumY - slope * sumX) / n;
+      const trendStart = intercept;
+      const trendEnd = intercept + slope * (n - 1);
+
+      const delta = trendEnd - trendStart;
+      let trendText = "Flat trend";
+      if (delta > 4) trendText = `Trending up · +${delta.toFixed(1)} pts`;
+      else if (delta < -4) trendText = `Trending down · ${delta.toFixed(1)} pts`;
+      sub.textContent = `${n} attempts · ${trendText}`;
+
+      const polyPath = progression.map((p, i) => `${i === 0 ? "M" : "L"}${xAt(i).toFixed(1)},${yAt(p.score).toFixed(1)}`).join(" ");
+
+      const gridLines = [0, 50, 100].map((g) => {
+        const y = yAt(g);
+        return `<line class="grid-line" x1="0" x2="${W}" y1="${y.toFixed(1)}" y2="${y.toFixed(1)}"></line>`;
+      }).join("");
+
+      const dots = progression.map((p, i) => {
+        const cls = _scoreColorClass(p.score);
+        const cx = xAt(i).toFixed(1);
+        const cy = yAt(p.score).toFixed(1);
+        const titleAttr = `${p.date_display} · ${p.title} · ${p.score}%`;
+        return `<circle class="data-dot ${cls}" cx="${cx}" cy="${cy}" r="4" vector-effect="non-scaling-stroke"><title>${safeHtml(titleAttr)}</title></circle>`;
+      }).join("");
+
+      body.innerHTML = `
+        <div class="chart-progression-wrap">
+          <div class="chart-plot-row">
+            <div class="chart-yaxis"><span>100%</span><span>50%</span><span>0%</span></div>
+            <svg class="chart-svg" viewBox="0 0 ${W} ${H}">
+              ${gridLines}
+              <line class="trend-line" x1="${xAt(0).toFixed(1)}" y1="${yAt(trendStart).toFixed(1)}" x2="${xAt(n - 1).toFixed(1)}" y2="${yAt(trendEnd).toFixed(1)}"></line>
+              <path class="data-line" d="${polyPath}"></path>
+              ${dots}
+            </svg>
+          </div>
+          <div class="chart-xaxis">
+            <span>${safeHtml(progression[0].date_short || progression[0].date_display)}</span>
+            <span>${safeHtml(progression[n - 1].date_short || progression[n - 1].date_display)}</span>
+          </div>
+        </div>
+      `;
+    }
+
+    function renderBestPerExamChart(bestPerExam) {
+      const card = document.getElementById("bestPerExamCard");
+      const body = document.getElementById("bestPerExamBody");
+      if (!bestPerExam || bestPerExam.length === 0) {
+        card.classList.add("hidden");
+        body.innerHTML = "";
+        return;
+      }
+      card.classList.remove("hidden");
+      body.innerHTML = `
+        <div class="best-rows">
+          ${bestPerExam.map((row) => {
+            const avg = (typeof row.avg === "number") ? row.avg : row.best;
+            const bestPct = Math.max(0, Math.min(100, row.best));
+            const avgPct = Math.max(0, Math.min(100, avg));
+            // Hide marker when there's no meaningful data to mark — otherwise
+            // the marker visually overflows the empty pill on the left edge.
+            const hasData = bestPct > 0 || avgPct > 0;
+            const markerHtml = hasData
+              ? `<div class="best-bar-marker" style="left:${avgPct.toFixed(1)}%;"></div>`
+              : "";
+            return `
+              <div class="best-row" title="${safeHtml(row.title)} · best ${row.best}% · avg ${avg}% · ${row.attempts} attempts">
+                <div class="best-row-title">${safeHtml(row.title)}</div>
+                <div class="best-bar-track">
+                  <div class="best-bar-fill" style="width:${bestPct.toFixed(1)}%;"></div>
+                  ${markerHtml}
+                </div>
+                <div class="best-row-stats"><strong>${Math.round(row.best)}%</strong> <span class="muted">avg ${Math.round(avg)}%</span> · ${row.attempts}×</div>
+              </div>
+            `;
+          }).join("")}
+        </div>
+      `;
+    }
+
+    function renderCharts(charts) {
+      const row = document.getElementById("chartsRow");
+      if (!charts || !charts.progression || charts.progression.length < 2) {
+        row.classList.add("hidden");
+        return;
+      }
+      row.classList.remove("hidden");
+      const hasBest = !!(charts.best_per_exam && charts.best_per_exam.length > 0);
+      row.classList.toggle("single-col", !hasBest);
+      renderProgressionChart(charts.progression);
+      renderBestPerExamChart(charts.best_per_exam || []);
+    }
+
+    function renderHistory(payload) {
+      if (!payload) {
+        return;
+      }
+      state.history = payload.records || [];
+      document.getElementById("statTotal").textContent = payload.stats.total_exams ?? 0;
+      document.getElementById("statAverage").textContent = payload.stats.average_score ?? "-";
+      document.getElementById("statBest").textContent = payload.stats.best_score ?? "-";
+      document.getElementById("statTime").textContent = payload.stats.total_time ?? "0m";
+      renderCharts(payload.charts);
+      const tbody = document.getElementById("historyBody");
+      tbody.innerHTML = "";
+      document.getElementById("historyEmpty").classList.toggle("hidden", state.history.length !== 0);
+      document.getElementById("historyTable").classList.toggle("hidden", state.history.length === 0);
+      state.history.forEach((record) => {
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td class="muted">${safeHtml(record.date_display)}</td>
+          <td>${safeHtml(record.title)}</td>
+          <td class="mono">${safeHtml(record.score_pct)}</td>
+          <td class="mono">${safeHtml(record.questions_text)}</td>
+          <td class="muted">${safeHtml(record.time_display)}</td>
+        `;
+        tr.addEventListener("click", () => bridgeCall("openHistoryReview", record.history_id));
+        tbody.appendChild(tr);
+      });
+    }
+
+    function reviewBadge(result) {
+      if (result === "correct") return '<span class="result-tag correct">Correct</span>';
+      if (result === "incorrect") return '<span class="result-tag incorrect">Incorrect</span>';
+      if (result === "unanswered") return '<span class="result-tag unanswered">Unanswered</span>';
+      return '<span class="result-tag">Review</span>';
+    }
+
+    function renderReviewEntry(entry) {
+      const lines = [];
+      if (entry.options) {
+        entry.options.forEach((opt) => {
+          lines.push(`<div class="review-option ${safeHtml(opt.state || "")}">${safeHtml(opt.prefix || "")} ${safeHtml(opt.letter)}. ${renderInline(opt.text)}</div>`);
+        });
+      }
+      if (entry.student_text !== undefined) {
+        if (entry.student_html) {
+          lines.push(`<div class="review-line"><strong>Your answer:</strong><div class="review-rich-answer">${sanitizeRichAnswerHtml(entry.student_html)}</div></div>`);
+        } else {
+          lines.push(`<div class="review-line"><strong>Your answer:</strong> ${renderInline(entry.student_text || "No answer provided")}</div>`);
+        }
+      }
+      if (entry.suggested_answer) {
+        lines.push(`<div class="review-line correct"><strong>Suggested answer:</strong> ${renderInline(entry.suggested_answer)}</div>`);
+      }
+      if (entry.blanks) {
+        entry.blanks.forEach((blank) => {
+          const cls = blank.is_correct ? "correct" : "wrong";
+          const selected = blank.selected_text != null ? safeHtml(blank.selected_text) : "<em style='color:var(--text-3)'>(no answer)</em>";
+          const suffix = blank.is_correct ? "" : ` &nbsp;→&nbsp; <strong>${safeHtml(blank.correct_text)}</strong>`;
+          lines.push(`<div class="review-line ${cls}">Blank ${safeHtml(blank.index)}: ${selected}${suffix}</div>`);
+        });
+      }
+      return `
+        <div class="review-card ${safeHtml(entry.result || "")}">
+          ${reviewBadge(entry.result)}
+          <h4>${renderInline(entry.title)}</h4>
+          ${lines.join("")}
+        </div>
+      `;
+    }
+
+    function renderReview(payload) {
+      state.reviewContext = payload;
+      document.getElementById("reviewTitle").textContent = payload.title || "Review";
+      document.getElementById("reviewMeta").innerHTML = payload.meta || "";
+      const body = document.getElementById("reviewBody");
+      const hasSections = Array.isArray(payload.sections) && payload.sections.length > 0;
+      const hasFlatEntries = Array.isArray(payload.entries) && payload.entries.length > 0;
+      if (!hasSections && !hasFlatEntries) {
+        body.innerHTML = `<p style="text-align:center;color:var(--text-3);padding:30px 0;">${safeHtml(payload.empty_message || "Nothing to review.")}</p>`;
+      } else if (hasSections) {
+        // Group by section, mirroring the exam screen structure.
+        body.innerHTML = payload.sections.map((section) => {
+          if (!section.entries || section.entries.length === 0) return "";
+          const cards = section.entries.map(renderReviewEntry).join("");
+          return `
+            <div class="review-section">
+              <h3 class="review-section-title">${safeHtml(section.name || "")}</h3>
+              ${cards}
+            </div>
+          `;
+        }).join("");
+      } else {
+        // Legacy path: flat list (history records saved before sections were tracked).
+        body.innerHTML = payload.entries.map(renderReviewEntry).join("");
+      }
+      document.getElementById("reviewExportBtn").classList.toggle("hidden", !payload.exportable_history_id);
+      document.getElementById("reviewExportExamBtn").classList.toggle("hidden", !payload.exportable_history_id);
+      openModal("reviewModal");
+    }
+
+    function setExamOpen(open) {
+      // Single source of truth: body.exam-active drives the CSS hard switch.
+      // It hides .app-header / .app-nav / main and shows #examScreen as the
+      // only flex child of <body>. No overlay, no z-index, no position:fixed.
+      document.body.classList.toggle("exam-active", !!open);
+    }
+
+    function getDraftAnswer(questionId) {
+      return state.examDraftAnswers[questionId];
+    }
+
+    function setDraftAnswer(questionId, value) {
+      state.examDraftAnswers[questionId] = value;
+    }
+
+    function getExamScrollContainer() {
+      return document.querySelector(".exam-body");
+    }
+
+    function saveActiveExamSectionScroll() {
+      const examBody = getExamScrollContainer();
+      if (!examBody) return;
+      state.examSectionScrollTops[state.activeExamSection] = examBody.scrollTop || 0;
+    }
+
+    function getExamSectionScrollTop(sectionIndex) {
+      const value = state.examSectionScrollTops[sectionIndex];
+      return Number.isFinite(value) ? value : 0;
+    }
+
+    function switchExamSection(nextSectionIndex) {
+      const total = (state.exam && state.exam.sections || []).length;
+      if (nextSectionIndex < 0 || nextSectionIndex >= total) return;
+      if (nextSectionIndex === state.activeExamSection) return;
+      saveActiveExamSectionScroll();
+      state.activeExamSection = nextSectionIndex;
+      renderExam(getExamSectionScrollTop(nextSectionIndex));
+    }
+
+    function renderMcOptions(question, submitted) {
+      const answer = getDraftAnswer(question.id) || {};
+      const selectedIndices = Array.isArray(answer.selected_indices)
+        ? answer.selected_indices
+        : answer.selected_index !== undefined && answer.selected_index !== null
+          ? [answer.selected_index]
+          : [];
+      const correctSet = new Set(
+        Array.isArray(question.correct_indices) && question.correct_indices.length
+          ? question.correct_indices
+          : (question.correct_index !== undefined ? [question.correct_index] : [])
+      );
+      const multiHint = question.multi_answer
+        ? `<div class="mc-multi-hint">Select all that apply</div>`
+        : "";
+      return `
+        ${multiHint}
+        <div class="mc-options${question.multi_answer ? " multi" : ""}">
+          ${question.options.map((opt, index) => {
+            const isSelected = selectedIndices.includes(index);
+            let resultClass = isSelected ? "selected" : "";
+            if (submitted) {
+              if (correctSet.has(index)) {
+                resultClass = "correct";
+              } else if (isSelected) {
+                resultClass = "wrong";
+              }
+            }
+            return `
+              <div class="mc-opt ${resultClass}" data-question-id="${safeHtml(question.id)}" data-option-index="${index}">
+                <span class="opt-letter">${safeHtml(opt.letter)}</span>
+                <span class="opt-text">${renderInline(opt.text)}</span>
+              </div>
+            `;
+          }).join("")}
+        </div>
+      `;
+    }
+
+    function renderFillBlank(question, submitted) {
+      const answer = getDraftAnswer(question.id) || {};
+      const selectedIndices = Array.isArray(answer.selected_indices) ? answer.selected_indices : [];
+      const pieces = [];
+      const lines = question.template.split("\n");
+      lines.forEach((line) => {
+        const segments = line.split(/(\{\d+\})/g).filter(Boolean);
+        const rendered = segments.map((segment) => {
+          const match = segment.match(/^\{(\d+)\}$/);
+          if (!match) {
+            return `<span class="fill-template-text">${safeHtml(segment)}</span>`;
+          }
+          const blankIndex = Number(match[1]);
+          // The per-blank verdict is rendered as a separate block below the
+          // sentence (see resultsBlock) — NOT inline, where it used to
+          // collide with the following template text.
+          return `
+            <select class="fill-select" data-question-id="${safeHtml(question.id)}" data-blank-index="${blankIndex}" ${submitted || question.locked ? "disabled" : ""}>
+              <option value="">- select -</option>
+              ${question.blanks[blankIndex].map((opt, optIndex) => `
+                <option value="${optIndex}" ${selectedIndices[blankIndex] === optIndex ? "selected" : ""}>${safeHtml(opt)}</option>
+              `).join("")}
+            </select>
+          `;
+        }).join("");
+        pieces.push(`<div class="fill-template-line">${rendered}</div>`);
+      });
+
+      let resultsBlock = "";
+      if (submitted && Array.isArray(question.blank_results) && question.blank_results.length) {
+        const multi = question.blank_results.length > 1;
+        const rows = question.blank_results.map((result, idx) => {
+          const label = multi ? `Blank ${idx + 1}: ` : "";
+          if (result && result.is_correct) {
+            return `<div class="fill-result-row correct">${label}✓ correct</div>`;
+          }
+          return `<div class="fill-result-row wrong">${label}✗ Correct answer: <strong>${safeHtml((result && result.correct_text) || "?")}</strong></div>`;
+        }).join("");
+        resultsBlock = `<div class="fill-results">${rows}</div>`;
+      }
+      return `<div class="fill-template">${pieces.join("")}</div>${resultsBlock}`;
+    }
+
+    function renderOpenQuestion(question, submitted) {
+      const answer = getDraftAnswer(question.id) || {};
+      const value = answer.html ? sanitizeRichAnswerHtml(answer.html) : safeHtml(answer.text || "");
+      const count = (answer.text || "").trim() ? (answer.text || "").trim().split(/\s+/).length : 0;
+      const limitClass = question.max_words && count > question.max_words ? "word-count limit" : "word-count";
+      return `
+        <div class="essay-toolbar">
+          <button class="tb-btn" type="button" data-tb-cmd="bold"><b>B</b></button>
+          <button class="tb-btn" type="button" data-tb-cmd="italic"><i>I</i></button>
+          <button class="tb-btn" type="button" data-tb-cmd="underline"><u>U</u></button>
+          <div class="tb-sep"></div>
+          <button class="tb-btn" type="button" data-tb-cmd="insertUnorderedList">≡</button>
+          <button class="tb-btn" type="button" data-tb-cmd="insertOrderedList">1.</button>
+          <div class="tb-sep"></div>
+          <button class="tb-btn" type="button" data-tb-cmd="undo">↩</button>
+          <button class="tb-btn" type="button" data-tb-cmd="redo">↪</button>
+        </div>
+        <div class="essay-area" data-open-question-id="${safeHtml(question.id)}" data-placeholder="${safeHtml(question.placeholder || "Write your answer here...")}" contenteditable="${submitted || question.locked ? "false" : "true"}">${value}</div>
+        <div class="${limitClass}" data-word-count-for="${safeHtml(question.id)}">${count} / ${safeHtml(question.max_words || 200)} word limit</div>
+        ${submitted && question.suggested_answer ? `<div class="suggested-answer"><strong>Suggested answer:</strong><br>${renderInline(question.suggested_answer)}</div>` : ""}
+        ${submitted && state.exam && state.exam.has_api_key ? `
+          <button class="ai-check-btn" data-ai-check-for="${safeHtml(question.id)}" type="button">✨ Check with AI</button>
+          <div class="ai-feedback hidden" data-ai-feedback-for="${safeHtml(question.id)}"></div>
+        ` : ""}
+      `;
+    }
+
+    function renderQuestion(question, submitted) {
+      const resultTag = submitted && question.result ? reviewBadge(question.result) : "";
+      const contextHtml = question.show_context && question.context
+        ? `<div class="context-box">${renderInline(question.context)}</div>`
+        : "";
+      let body = "";
+      if (question.type === "mc") {
+        body = renderMcOptions(question, submitted);
+      } else if (question.type === "open") {
+        body = renderOpenQuestion(question, submitted);
+      } else if (question.type === "fill_blank") {
+        body = renderFillBlank(question, submitted);
+      }
+      return `
+        <div class="q-block-${safeHtml(question.type === "mc" ? "mc" : question.type === "open" ? "essay" : "fill")}">
+          ${resultTag}
+          ${contextHtml}
+          <div class="q-head">
+            <div class="q-number">${safeHtml(question.number_label || "")}</div>
+            <div class="q-body">
+              <div class="q-text">${renderInline(question.title)}</div>
+            </div>
+          </div>
+          ${body}
+        </div>
+      `;
+    }
+
+    function renderExam(targetScrollTop) {
+      const exam = state.exam;
+      const nav = document.getElementById("examNav");
+      const root = document.getElementById("examSectionsRoot");
+      // Preserve scroll across re-render. Without this, every click on an
+      // MC option (which triggers renderExam) yanks the user back to Q1.
+      // Section changes pass the destination section's saved scroll position,
+      // defaulting to 0 when that section has not been visited in this exam.
+      const examBodyForScroll = getExamScrollContainer();
+      const savedScrollTop = targetScrollTop !== undefined
+        ? targetScrollTop
+        : (examBodyForScroll ? examBodyForScroll.scrollTop : 0);
+      state.examSectionScrollTops[state.activeExamSection] = savedScrollTop;
+      if (!exam) {
+        nav.innerHTML = "";
+        root.innerHTML = "";
+        document.getElementById("examEmptyState").classList.add("active");
+        return;
+      }
+      document.getElementById("examEmptyState").classList.remove("active");
+      document.getElementById("examScreenTitle").textContent = exam.exam_title;
+      document.getElementById("timerDisplay").textContent = exam.remaining_display;
+      document.getElementById("pauseBtn").textContent = exam.is_paused ? ">" : "||";
+      document.getElementById("reviewMistakesBtn").classList.toggle("hidden", !exam.can_review_mistakes);
+      document.getElementById("aiStudyReportBtn").classList.toggle("hidden", !exam.can_ai_report);
+      // Show the small green "Activate AI" button in the submit-bar only when
+      // the exam is submitted and there is no API key yet — gives the student
+      // a chance to unlock AI features they forgot to enable in setup.
+      const activateAiBtn = document.getElementById("activateAiBtn");
+      if (activateAiBtn) {
+        const showActivateAi = !!exam.is_submitted && !exam.has_api_key;
+        activateAiBtn.classList.toggle("hidden", !showActivateAi);
+      }
+      const submitBarExportExamBtn = document.getElementById("submitBarExportExamBtn");
+      if (submitBarExportExamBtn) {
+        submitBarExportExamBtn.classList.toggle("hidden", !exam.is_submitted || state.submittedHistoryId === null);
+      }
+      document.getElementById("submitExamBtn").disabled = !!exam.is_submitted;
+      document.getElementById("submitExamBtn").textContent = exam.is_submitted ? "Submitted" : "Submit Exam";
+
+      // Section navigation: guide the user through sections instead of letting
+      // them submit on the first tab (which Tim flagged as confusing).
+      // Pre-submit:
+      //   non-last section → show "Next Section →", hide "Submit Exam"
+      //   last section     → show "Submit Exam", hide "Next Section →"
+      // Post-submit: always show "Submitted", hide Next/Previous nav.
+      const totalSections = (exam.sections || []).length;
+      const isLastSection = state.activeExamSection >= totalSections - 1;
+      const isFirstSection = state.activeExamSection <= 0;
+      const submitted = !!exam.is_submitted;
+      document.getElementById("nextSectionBtn").classList.toggle(
+        "hidden", submitted || isLastSection || totalSections <= 1,
+      );
+      document.getElementById("submitExamBtn").classList.toggle(
+        "hidden", !submitted && !isLastSection && totalSections > 1,
+      );
+      document.getElementById("prevSectionBtn").classList.toggle(
+        "hidden", submitted || isFirstSection || totalSections <= 1,
+      );
+      nav.innerHTML = exam.sections.map((section, index) => `
+        <button class="exam-tab ${index === state.activeExamSection ? "active" : ""}" data-section-index="${index}">
+          ${safeHtml(section.name)}
+        </button>
+      `).join("");
+      root.innerHTML = exam.sections.map((section, index) => `
+        <div class="exam-content ${index === state.activeExamSection ? "active" : ""}" data-section-content="${index}">
+          ${exam.score_banner ? `<div class="banner score">${safeHtml(exam.score_banner)}</div>` : ""}
+          ${exam.time_up_banner ? `<div class="banner timeup">${safeHtml(exam.time_up_banner)}</div>` : ""}
+          ${index === 0 ? (exam.intro_blocks || []).map((block) => {
+            const content = (block.content || "").trim();
+            // Skip blocks with no real content — otherwise an empty .context-box
+            // renders as a styled-but-empty container above the section.
+            if (!content) return "";
+            if (block.type === "code") {
+              const codeContent = content.replace(/\n{3,}/g, "\n\n");
+              return `<div class="context-box"><pre style="white-space:pre-wrap;font-family:'DM Mono',Consolas,'Courier New',monospace;font-size:13px;line-height:1.55;">${safeHtml(codeContent)}</pre></div>`;
+            }
+            return `<div class="context-box">${safeHtml(content)}</div>`;
+          }).join("") : ""}
+          ${section.summary ? `<div class="section-info">${safeHtml(section.summary)}</div>` : ""}
+          <div class="questions-wrap">
+            ${section.questions.map((question) => renderQuestion(question, exam.is_submitted)).join("")}
+          </div>
+        </div>
+      `).join("");
+      wireExamSectionTabs();
+      wireExamQuestionInputs();
+      wireExamReviewListeners();
+      wireRichTextToolbar();
+      // Restore scroll position now that DOM is rebuilt. Restoring on THREE
+      // levels because of browser quirks: when innerHTML is replaced, some
+      // Chromium builds reset scrollTop synchronously (caught by line 1),
+      // others reset on next layout (caught by rAF #1), and a few reset on
+      // the paint after that (rAF #2 — belt and braces, harmless if redundant).
+      const restoreScroll = () => {
+        if (examBodyForScroll) examBodyForScroll.scrollTop = savedScrollTop;
+      };
+      restoreScroll();
+      requestAnimationFrame(() => {
+        restoreScroll();
+        requestAnimationFrame(restoreScroll);
+      });
+    }
+
+    function wireRichTextToolbar() {
+      // Wire toolbar buttons (B / I / U / lists / undo / redo) to execCommand on
+      // the focused contenteditable answer area. mousedown.preventDefault() is
+      // critical so clicking the button does not steal focus from the editor.
+      document.querySelectorAll(".tb-btn[data-tb-cmd]").forEach((btn) => {
+        if (btn.dataset.tbBound === "1") return;
+        btn.dataset.tbBound = "1";
+        btn.addEventListener("mousedown", (e) => e.preventDefault());
+        btn.addEventListener("click", () => {
+          const cmd = btn.dataset.tbCmd;
+          if (!cmd) return;
+          try { document.execCommand(cmd, false, null); } catch (e) {}
+          // After applying formatting, re-trigger input on the active editor so
+          // the word count and draft answer stay in sync.
+          const editor = document.activeElement && document.activeElement.matches("[data-open-question-id]")
+            ? document.activeElement
+            : document.querySelector("[data-open-question-id][contenteditable='true']");
+          if (editor) {
+            editor.dispatchEvent(new Event("input", { bubbles: true }));
+            editor.focus();
+          }
+        });
+      });
+    }
+
+    function wireExamReviewListeners() {
+      // Attached AFTER submission — wires per-question "Check with AI" buttons.
+      document.querySelectorAll("[data-ai-check-for]").forEach((btn) => {
+        if (btn.dataset.aiBound === "1") return;  // avoid double-binding on re-render
+        btn.dataset.aiBound = "1";
+        btn.addEventListener("click", () => {
+          const qid = btn.dataset.aiCheckFor;
+          if (!qid) return;
+          btn.disabled = true;
+          btn.textContent = "Checking…";
+          const fb = document.querySelector(`[data-ai-feedback-for="${qid}"]`);
+          if (fb) {
+            fb.classList.add("hidden");
+            fb.classList.remove("error");
+            fb.textContent = "";
+          }
+          bridgeCall("requestOpenAnswerReview", qid);
+        });
+      });
+    }
+
+    function wireExamSectionTabs() {
+      document.querySelectorAll(".exam-tab").forEach((btn) => {
+        btn.addEventListener("click", () => {
+          switchExamSection(Number(btn.dataset.sectionIndex));
+        });
+      });
+    }
+
+    function wireExamQuestionInputs() {
+      const exam = state.exam;
+      if (!exam || exam.is_submitted || exam.time_up) {
+        return;
+      }
+      document.querySelectorAll(".mc-opt").forEach((node) => {
+        node.addEventListener("click", () => {
+          const qid = node.dataset.questionId;
+          const idx = Number(node.dataset.optionIndex);
+          const question = exam.questions_by_id[qid];
+          if (!question) {
+            return;
+          }
+          const answer = getDraftAnswer(qid) || {};
+          if (question.multi_answer) {
+            const current = new Set(Array.isArray(answer.selected_indices) ? answer.selected_indices : []);
+            if (current.has(idx)) current.delete(idx); else current.add(idx);
+            setDraftAnswer(qid, { selected_indices: Array.from(current).sort((a, b) => a - b) });
+          } else {
+            setDraftAnswer(qid, { selected_index: idx });
+          }
+          // Surgical DOM update — toggle .selected class on this question's
+          // options without rebuilding the whole exam DOM. This avoids the
+          // scroll-reset that innerHTML replacement causes (user reported
+          // jumping to Q1 when answering Q4). State is already in sync with
+          // setDraftAnswer above; no renderExam needed for visual feedback.
+          const block = node.closest(".q-block-mc");
+          if (block) {
+            const newAnswer = getDraftAnswer(qid) || {};
+            const selected = question.multi_answer
+              ? new Set(Array.isArray(newAnswer.selected_indices) ? newAnswer.selected_indices : [])
+              : (newAnswer.selected_index !== undefined ? new Set([newAnswer.selected_index]) : new Set());
+            block.querySelectorAll(".mc-opt").forEach((opt) => {
+              const optIdx = Number(opt.dataset.optionIndex);
+              opt.classList.toggle("selected", selected.has(optIdx));
+            });
+          }
+        });
+      });
+      document.querySelectorAll("[data-open-question-id]").forEach((node) => {
+        node.addEventListener("input", () => {
+          const qid = node.dataset.openQuestionId;
+          const text = (node.innerText || node.value || "").replace(/ /g, " ");
+          const html = sanitizeRichAnswerHtml(node.innerHTML || "");
+          setDraftAnswer(qid, { text, html });
+          const question = exam.questions_by_id[qid];
+          const count = text.trim() ? text.trim().split(/\s+/).length : 0;
+          const label = document.querySelector(`[data-word-count-for="${qid}"]`);
+          if (label) {
+            label.textContent = `${count} / ${question.max_words || 200} word limit`;
+            label.classList.toggle("limit", !!question.max_words && count > question.max_words);
+          }
+        });
+      });
+      document.querySelectorAll(".fill-select").forEach((node) => {
+        node.addEventListener("change", () => {
+          const qid = node.dataset.questionId;
+          const blankIndex = Number(node.dataset.blankIndex);
+          const question = exam.questions_by_id[qid];
+          const answer = getDraftAnswer(qid) || { selected_indices: [] };
+          const current = Array.isArray(answer.selected_indices) ? answer.selected_indices.slice() : [];
+          current[blankIndex] = node.value === "" ? null : Number(node.value);
+          setDraftAnswer(qid, { selected_indices: current });
+        });
+      });
+    }
+
+    function serializeAnswersForSubmit() {
+      return state.examDraftAnswers;
+    }
+
+    function applyInitialState(payload) {
+      if (!payload) {
+        return;
+      }
+      applySetupDefaults(payload.setup?.defaults || {});
+      if (payload.setup?.file) {
+        applySetupFile(payload.setup.file);
+      }
+      if (payload.history) {
+        renderHistory(payload.history);
+      }
+    }
+
+    function handleSubmission(payload) {
+      if (!payload) {
+        return;
+      }
+      state.exam = payload.exam;
+      state.exam.questions_by_id = {};
+      state.exam.sections.forEach((section) => {
+        section.questions.forEach((question) => {
+          state.exam.questions_by_id[question.id] = question;
+        });
+      });
+      state.examDraftAnswers = payload.exam.answers || {};
+      state.submittedHistoryId = payload.history_id ?? null;
+      renderExam();
+      showToast("Exam submitted successfully.", "success");
+    }
+
+    function connectBridgeSignals() {
+      window.bridge.initialStateReady.connect((payload) => applyInitialState(parsePayload(payload)));
+      window.bridge.setupFileLoaded.connect((payload) => applySetupFile(parsePayload(payload)));
+      window.bridge.generationStateChanged.connect((payload) => applySetupFile(parsePayload(payload)));
+      window.bridge.examStarted.connect((payload) => {
+        const parsed = parsePayload(payload);
+        if (!parsed) return;
+        state.exam = parsed;
+        state.exam.questions_by_id = {};
+        parsed.sections.forEach((section) => {
+          section.questions.forEach((question) => {
+            state.exam.questions_by_id[question.id] = question;
+          });
+        });
+        state.examDraftAnswers = parsed.answers || {};
+        state.activeExamSection = 0;
+        state.examSectionScrollTops = {};
+        // Switch screens FIRST (setup layout removed, #examScreen becomes a
+        // full-viewport opaque fixed cover), then force a synchronous reflow
+        // so Chromium recomputes layout for the new layer before it paints,
+        // then render on the next two frames. The forced reflow + opaque
+        // cover together kill the "half setup / half exam" stale-paint glitch
+        // under software rendering.
+        setExamOpen(true);
+        const examEl = document.getElementById("examScreen");
+        // Reading offsetHeight forces a synchronous layout flush.
+        void examEl.offsetHeight;
+        if (examEl) examEl.scrollTop = 0;
+        requestAnimationFrame(() => {
+          renderExam(0);
+          // A second frame after render ensures the freshly painted exam
+          // surface is composited over the whole viewport.
+          requestAnimationFrame(() => { void examEl.offsetHeight; });
+        });
+      });
+      window.bridge.timerUpdated.connect((payload) => {
+        const parsed = parsePayload(payload);
+        if (!parsed || !state.exam) return;
+        state.exam.remaining_seconds = parsed.remaining_seconds;
+        state.exam.remaining_display = parsed.remaining_display;
+        state.exam.is_paused = parsed.is_paused;
+        document.getElementById("timerDisplay").textContent = parsed.remaining_display;
+        document.getElementById("pauseBtn").textContent = parsed.is_paused ? ">" : "||";
+      });
+      window.bridge.examLocked.connect((payload) => {
+        const parsed = parsePayload(payload);
+        if (!parsed || !state.exam) return;
+        state.exam.time_up = true;
+        state.exam.time_up_banner = parsed.message;
+        renderExam();
+        if (parsed.auto_submit_requested) {
+          bridgeCall("submitExam", serializeAnswersForSubmit());
+        } else {
+          showToast(parsed.message, "error");
+        }
+      });
+      window.bridge.submissionCompleted.connect((payload) => handleSubmission(parsePayload(payload)));
+      // Lightweight refresh of the exam payload (no "submitted" toast).
+      // Used after the student activates a Groq API key post-exam.
+      window.bridge.examPayloadUpdated.connect((payload) => {
+        const parsed = parsePayload(payload);
+        if (!parsed || !parsed.exam) return;
+        state.exam = parsed.exam;
+        state.exam.questions_by_id = {};
+        state.exam.sections.forEach((section) => {
+          section.questions.forEach((question) => {
+            state.exam.questions_by_id[question.id] = question;
+          });
+        });
+        renderExam();
+      });
+      window.bridge.mistakesReviewReady.connect((payload) => renderReview(parsePayload(payload)));
+      window.bridge.aiStudyReportReady.connect((payload) => {
+        const parsed = parsePayload(payload);
+        if (!parsed) return;
+        document.getElementById("aiReportBody").innerHTML = parsed.html;
+        openModal("aiReportModal");
+      });
+      window.bridge.openAnswerReviewReady.connect((payload) => {
+        const parsed = parsePayload(payload);
+        if (!parsed || !parsed.question_id) return;
+        const fb = document.querySelector(`[data-ai-feedback-for="${parsed.question_id}"]`);
+        const btn = document.querySelector(`[data-ai-check-for="${parsed.question_id}"]`);
+        if (fb) {
+          fb.textContent = parsed.feedback || "";
+          fb.classList.toggle("error", !parsed.ok);
+          fb.classList.remove("hidden");
+        }
+        if (btn) {
+          if (parsed.ok) {
+            btn.classList.add("hidden");
+          } else {
+            btn.disabled = false;
+            btn.textContent = "✨ Check with AI";
+          }
+        }
+      });
+      window.bridge.historyReady.connect((payload) => renderHistory(parsePayload(payload)));
+      window.bridge.historyReviewReady.connect((payload) => renderReview(parsePayload(payload)));
+      window.bridge.errorRaised.connect((payload) => {
+        const parsed = parsePayload(payload);
+        if (parsed && parsed.message) {
+          showToast(parsed.message, parsed.kind || "error");
+        }
+      });
+    }
+
+    function collectSetupState() {
+      return {
+        exam_title: document.getElementById("examTitleInput").value.trim(),
+        student_name: "",
+        duration_hours: state.dur.h,
+        duration_minutes: state.dur.m,
+        shuffle_questions: document.getElementById("toggleShuffleQuestions").checked,
+        shuffle_options: document.getElementById("toggleShuffleOptions").checked,
+        export_answers_on_submit: true,
+        export_pdf_on_submit: true,
+        launch_fullscreen: document.getElementById("toggleFullscreen").checked,
+        api_key: document.getElementById("apiKeyInput").value.trim()
+      };
+    }
+
+    function wireStaticUi() {
+      document.querySelectorAll(".tab").forEach((btn) => {
+        btn.addEventListener("click", () => switchPanel(btn.dataset.panel));
+      });
+      document.querySelectorAll("[data-close-modal]").forEach((btn) => {
+        btn.addEventListener("click", () => closeModal(btn.dataset.closeModal));
+      });
+      document.querySelectorAll(".close-modal-dot").forEach((dot) => {
+        dot.addEventListener("click", () => {
+          const overlay = dot.closest(".modal-overlay");
+          if (overlay && overlay.id) closeModal(overlay.id);
+        });
+      });
+      document.querySelectorAll(".modal-overlay").forEach((overlay) => {
+        overlay.addEventListener("click", (event) => {
+          if (event.target === overlay) {
+            overlay.classList.remove("open");
+          }
+        });
+      });
+      // Delegated handler so any `.external-link[data-href="..."]` element
+      // routes through the bridge. This avoids QWebEngineView trying to
+      // navigate the embedded page itself when an `<a href>` is clicked.
+      document.addEventListener("click", (event) => {
+        const link = event.target.closest(".external-link");
+        if (!link) return;
+        event.preventDefault();
+        const url = link.dataset.href;
+        if (url) bridgeCall("openExternalUrl", url);
+      });
+      // Landing screen — only on first launch (localStorage-gated). Auto-
+       // dismisses after a short animation. No click-anywhere, no buttons,
+       // no skip handlers — Athos found it annoying. Quick brand moment, then
+       // straight into the app on every subsequent launch.
+      const SEEN_KEY = "wisemock_seen_v2";
+      const landingScreen = document.getElementById("landingScreen");
+      if (landingScreen) {
+        let alreadySeen = false;
+        try { alreadySeen = !!localStorage.getItem(SEEN_KEY); } catch (e) {}
+        if (alreadySeen) {
+          landingScreen.remove();
+        } else {
+          setTimeout(() => {
+            landingScreen.classList.add("dismissed");
+            try { localStorage.setItem(SEEN_KEY, "1"); } catch (e) {}
+          }, 1800);
+        }
+      }
+      document.getElementById("helpBtn").addEventListener("click", () => openModal("helpModal"));
+      document.getElementById("dropZone").addEventListener("click", () => bridgeCall("pickInputFile"));
+      document.getElementById("sampleExamLink").addEventListener("click", (event) => {
+        event.stopPropagation();   // don't bubble into dropZone's file-picker click
+        bridgeCall("loadSampleExam");
+      });
+      document.getElementById("dropZone").addEventListener("dragover", (event) => {
+        event.preventDefault();
+        document.getElementById("dropZone").classList.add("drag-over");
+      });
+      document.getElementById("dropZone").addEventListener("dragleave", () => {
+        document.getElementById("dropZone").classList.remove("drag-over");
+      });
+      document.getElementById("dropZone").addEventListener("drop", (event) => {
+        event.preventDefault();
+        document.getElementById("dropZone").classList.remove("drag-over");
+      });
+      document.getElementById("hoursMinus").addEventListener("click", () => adjustDuration("h", -1));
+      document.getElementById("hoursPlus").addEventListener("click", () => adjustDuration("h", 1));
+      document.getElementById("minsMinus").addEventListener("click", () => adjustDuration("m", -1));
+      document.getElementById("minsPlus").addEventListener("click", () => adjustDuration("m", 1));
+      document.getElementById("hoursVal").addEventListener("blur", commitTypedHours);
+      document.getElementById("hoursVal").addEventListener("keydown", (e) => { if (e.key === "Enter") e.target.blur(); });
+      document.getElementById("hoursVal").addEventListener("focus", (e) => e.target.select());
+      document.getElementById("minsVal").addEventListener("blur", commitTypedMinutes);
+      document.getElementById("minsVal").addEventListener("keydown", (e) => { if (e.key === "Enter") e.target.blur(); });
+      document.getElementById("minsVal").addEventListener("focus", (e) => e.target.select());
+
+      // Sync API key to bridge on every keystroke. The bridge needs the key
+      // for multi-file drops (no JS payload on Qt drop events). Cheap to
+      // push on every input — it's just a string assignment.
+      const apiKeySync = document.getElementById("apiKeyInput");
+      if (apiKeySync) {
+        apiKeySync.addEventListener("input", () => {
+          bridgeCall("setCurrentApiKey", apiKeySync.value.trim());
+        });
+      }
+
+      // Difficulty slider live readout. Athos asked for 1-10 instead of
+      // easy/medium/hard. Map the numeric value to a friendly label so the
+      // user gets both granularity and meaning at a glance.
+      const difficultySlider = document.getElementById("genDifficulty");
+      const difficultyValueEl = document.getElementById("genDifficultyValue");
+      const difficultyLabelEl = document.getElementById("genDifficultyLabel");
+      const difficultyLabelFor = (n) => {
+        if (n <= 2) return "Very easy";
+        if (n <= 4) return "Easy";
+        if (n <= 6) return "Moderate";
+        if (n <= 8) return "Challenging";
+        return "Expert";
+      };
+      const updateDifficultyReadout = () => {
+        const n = parseInt(difficultySlider.value, 10) || 5;
+        if (difficultyValueEl) difficultyValueEl.textContent = String(n);
+        if (difficultyLabelEl) difficultyLabelEl.textContent = difficultyLabelFor(n);
+      };
+      if (difficultySlider) {
+        difficultySlider.addEventListener("input", updateDifficultyReadout);
+        updateDifficultyReadout();
+      }
+      const genSizeSelect = document.getElementById("genSize");
+      const customSizeField = document.getElementById("customSizeField");
+      const customQuestionInput = document.getElementById("genCustomQuestionCount");
+      const updateCustomSizeVisibility = () => {
+        const isCustom = genSizeSelect.value === "custom";
+        customSizeField.classList.toggle("visible", isCustom);
+        customQuestionInput.disabled = !isCustom;
+      };
+      genSizeSelect.addEventListener("change", updateCustomSizeVisibility);
+      updateCustomSizeVisibility();
+
+      document.getElementById("generateBtn").addEventListener("click", () => {
+        const apiKey = requiredApiKey("generating an exam");
+        if (!apiKey) return;
+        const size = genSizeSelect.value;
+        const customQuestionCount = Math.max(1, Math.min(200, parseInt(customQuestionInput.value, 10) || 20));
+        bridgeCall("generateExam", {
+          api_key: apiKey,
+          difficulty: parseInt(document.getElementById("genDifficulty").value, 10) || 5,
+          size,
+          custom_question_count: size === "custom" ? customQuestionCount : null,
+          q_types: [
+            document.getElementById("genTypeMc").checked ? "mc" : null,
+            document.getElementById("genTypeOpen").checked ? "open" : null,
+            document.getElementById("genTypeFill").checked ? "fill_blank" : null
+          ].filter(Boolean)
+        });
+      });
+      document.getElementById("startBtn").addEventListener("click", () => bridgeCall("startExam", collectSetupState()));
+      document.getElementById("refreshHistoryBtn").addEventListener("click", () => bridgeCall("refreshHistory"));
+      document.getElementById("clearHistoryBtn").addEventListener("click", () => bridgeCall("clearHistory"));
+      document.getElementById("pauseBtn").addEventListener("click", () => bridgeCall("togglePause"));
+      document.getElementById("exitExamBtn").addEventListener("click", () => openModal("exitModal"));
+      document.getElementById("confirmExitBtn").addEventListener("click", () => {
+        bridgeCall("confirmExitExam");
+        closeModal("exitModal");
+        setExamOpen(false);
+      });
+      document.getElementById("submitExamBtn").addEventListener("click", () => bridgeCall("submitExam", serializeAnswersForSubmit()));
+
+      // ── Keyboard shortcuts for MC selection (Athos: "1234 pra selecionar") ──
+      // Pressing 1..9 picks the corresponding option in the MC question that
+      // is currently most visible (closest to the viewport center). Skipped
+      // when the exam isn't active, when submitted, or when typing in an
+      // input / textarea / contenteditable open answer.
+      function findActiveMcBlock() {
+        const candidates = document.querySelectorAll(
+          `[data-section-content="${state.activeExamSection}"] .q-block-mc`,
+        );
+        if (!candidates.length) return null;
+        const viewportCenter = window.innerHeight / 2;
+        let best = null;
+        let bestDist = Infinity;
+        candidates.forEach((node) => {
+          const rect = node.getBoundingClientRect();
+          if (rect.bottom < 0 || rect.top > window.innerHeight) return;
+          const center = (rect.top + rect.bottom) / 2;
+          const dist = Math.abs(center - viewportCenter);
+          if (dist < bestDist) {
+            bestDist = dist;
+            best = node;
+          }
+        });
+        return best;
+      }
+      function selectMcOptionByKeyboard(index) {
+        const block = findActiveMcBlock();
+        if (!block) return;
+        const opts = block.querySelectorAll(".mc-opt");
+        if (index < 0 || index >= opts.length) return;
+        opts[index].click();
+      }
+
+      document.addEventListener("keydown", (event) => {
+        const examScreen = document.getElementById("examScreen");
+        if (!examScreen || !examScreen.classList.contains("open")) return;
+        if (state.exam && state.exam.is_submitted) return;
+        const target = event.target;
+        if (target && (target.tagName === "INPUT" || target.tagName === "TEXTAREA"
+                       || target.isContentEditable)) return;
+        if (event.metaKey || event.ctrlKey || event.altKey) return;
+        if (/^[1-9]$/.test(event.key)) {
+          selectMcOptionByKeyboard(parseInt(event.key, 10) - 1);
+          event.preventDefault();
+        }
+      });
+
+      // Section navigation buttons. Scrolls back to top of exam-body so the
+      // student starts the next/previous section from the top, not where they
+      // last scrolled.
+      document.getElementById("nextSectionBtn").addEventListener("click", () => {
+        const total = (state.exam && state.exam.sections || []).length;
+        if (state.activeExamSection < total - 1) {
+          switchExamSection(state.activeExamSection + 1);
+        }
+      });
+      document.getElementById("prevSectionBtn").addEventListener("click", () => {
+        if (state.activeExamSection > 0) {
+          switchExamSection(state.activeExamSection - 1);
+        }
+      });
+      document.getElementById("reviewMistakesBtn").addEventListener("click", () => bridgeCall("requestReviewMistakes"));
+      document.getElementById("aiStudyReportBtn").addEventListener("click", () => {
+        document.getElementById("aiReportBody").innerHTML = "Generating study report...";
+        openModal("aiReportModal");
+        bridgeCall("requestAIStudyReport");
+      });
+      // Post-exam API key activation: lets the student paste a Groq key after
+      // submitting if they forgot to enter one in setup. The bottom-bar button
+      // opens a small modal; saving emits a fresh exam payload from the bridge,
+      // which flips has_api_key/can_ai_report and re-renders the UI.
+      const activateAiBtnEl = document.getElementById("activateAiBtn");
+      const postExamSaveBtn = document.getElementById("postExamApiKeySaveBtn");
+      const postExamInput = document.getElementById("postExamApiKeyInput");
+      activateAiBtnEl.addEventListener("click", () => {
+        postExamInput.value = "";
+        openModal("apiKeyModal");
+        // Defer focus so the modal-open transition doesn't steal it.
+        setTimeout(() => postExamInput.focus(), 60);
+      });
+      const submitPostExamApiKey = () => {
+        const value = (postExamInput.value || "").trim();
+        if (!value) {
+          showToast("Please paste a valid Groq API key.", "error");
+          return;
+        }
+        bridgeCall("setApiKeyAfterExam", value);
+        postExamInput.value = "";
+        closeModal("apiKeyModal");
+        showToast("API key activated — AI features are now available.", "success");
+      };
+      postExamSaveBtn.addEventListener("click", submitPostExamApiKey);
+      postExamInput.addEventListener("keydown", (event) => {
+        if (event.key === "Enter") {
+          event.preventDefault();
+          submitPostExamApiKey();
+        }
+      });
+      document.getElementById("reviewExportBtn").addEventListener("click", () => {
+        if (state.reviewContext && state.reviewContext.exportable_history_id) {
+          bridgeCall("exportHistoryReviewPdf", state.reviewContext.exportable_history_id);
+        }
+      });
+      document.getElementById("reviewExportExamBtn").addEventListener("click", () => {
+        if (state.reviewContext && state.reviewContext.exportable_history_id) {
+          bridgeCall("exportHistoryExamFile", state.reviewContext.exportable_history_id);
+        }
+      });
+      document.getElementById("submitBarExportExamBtn").addEventListener("click", () => {
+        if (state.submittedHistoryId !== null) {
+          bridgeCall("exportHistoryExamFile", state.submittedHistoryId);
+        }
+      });
+    }
+
+    function initBridge() {
+      new QWebChannel(qt.webChannelTransport, (channel) => {
+        window.bridge = channel.objects.bridge;
+        state.bridgeReady = true;
+        connectBridgeSignals();
+        bridgeCall("requestInitialState");
+        bridgeCall("refreshHistory");
+      });
+    }
+
+    wireStaticUi();
+    initBridge();
+  </script>
+</body>
+</html>

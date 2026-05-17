@@ -1,0 +1,15 @@
+# Required GUI dependencies
+PyQt5
+PyQtWebEngine
+
+# Optional document extraction support
+pymupdf
+python-docx
+python-pptx
+
+# Optional OCR support
+# Note: OCR also requires the Tesseract system binary to be installed separately.
+pytesseract
+Pillow
+
+# Groq API access requires an API key, not an additional pip package.

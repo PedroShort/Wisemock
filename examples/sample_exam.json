@@ -1,0 +1,827 @@
+{
+  "title": "Exam - 25/26 S1",
+  "intro": [
+    {
+      "title": "Sample Exam",
+      "body": "This sample exam was converted from the provided DOCX so WiseMock can be tested without AI features or a Groq API key."
+    }
+  ],
+  "sections": [
+    {
+      "name": "Section 1 - Conceptual Multiple Choice",
+      "instructions": "Questions focused on programming concepts, data structures, functions, loops, conditionals, and classes.",
+      "questions": [
+        {
+          "id": "q1",
+          "type": "mc",
+          "title": "What is the main reason to implement a function?",
+          "options": [
+            "To reduce the number of errors",
+            "To make the program run automatically",
+            "To avoid code duplication and give the computation a clear purpose",
+            "To force the use of parameters"
+          ],
+          "correct_answer": "C"
+        },
+        {
+          "id": "q2",
+          "type": "mc",
+          "title": "When selecting a data structure, what is the main reason behind choosing a list?",
+          "options": [
+            "Lists are always faster",
+            "The problem involves an ordered collection that may change over time",
+            "Lists prevent invalid data",
+            "Lists work only with numbers"
+          ],
+          "correct_answer": "B"
+        },
+        {
+          "id": "q3",
+          "type": "mc",
+          "title": "What is the difference between print and return?",
+          "options": [
+            "There is no difference",
+            "print displays information to the console, while return provides a value back to the caller",
+            "print can not be used after return",
+            "print can only display strings, while return can display any type"
+          ],
+          "correct_answer": "B"
+        },
+        {
+          "id": "q4",
+          "type": "mc",
+          "title": "Why are classes useful in program design?",
+          "options": [
+            "They make code shorter",
+            "They replace all dictionaries",
+            "They allow grouping related attributes (data) and behaviors (code)",
+            "They automatically validate data"
+          ],
+          "correct_answer": "C"
+        },
+        {
+          "id": "q5",
+          "type": "mc",
+          "title": "Which approach best supports organizing larger programs?",
+          "options": [
+            "Using only global variables",
+            "Writing code in a single long file",
+            "Splitting behavior into functions and classes",
+            "Using artificial intelligence"
+          ],
+          "correct_answer": "C"
+        },
+        {
+          "id": "q6",
+          "type": "mc",
+          "title": "When is a for loop more appropriate than a while loop?",
+          "options": [
+            "When iterating over a known sequence",
+            "When repeating until a condition becomes false",
+            "When looping forever",
+            "When avoiding iteration"
+          ],
+          "correct_answer": "A"
+        },
+        {
+          "id": "q7",
+          "type": "mc",
+          "title": "You want to store student names grouped by class. Which structure fits best?",
+          "options": [
+            "A list of student names and classes",
+            "A dictionary mapping class names to lists of students",
+            "A tuple of lists with student name and class",
+            "A list of dictionaries with no keys"
+          ],
+          "correct_answer": "B"
+        },
+        {
+          "id": "q8",
+          "type": "mc",
+          "title": "You write a function that checks whether a given student passed a given course. What should the arguments be?",
+          "options": [
+            "The student's score and the passing score",
+            "Only the student's score",
+            "Only the passing score",
+            "A list of all students' scores"
+          ],
+          "correct_answer": "A"
+        },
+        {
+          "id": "q9",
+          "type": "mc",
+          "title": "What is the purpose of an else statement in an if-else structure?",
+          "options": [
+            "To repeat code until a condition becomes false",
+            "To run code when none of the preceding if/elif conditions are true",
+            "To check multiple conditions at once",
+            "To stop the program if a condition is False"
+          ],
+          "correct_answer": "B"
+        },
+        {
+          "id": "q10",
+          "type": "mc",
+          "title": "Which of the following makes a program easier to maintain and extend?",
+          "options": [
+            "Writing as few lines of code as possible.",
+            "Avoiding comments.",
+            "Grouping behavior into functions and classes.",
+            "Using only lists and no dictionaries."
+          ],
+          "correct_answer": "C"
+        }
+      ]
+    },
+    {
+      "name": "Section 2 - Code Output Questions",
+      "instructions": "Questions where the student must read code and identify the output or error.",
+      "questions": [
+        {
+          "id": "q11",
+          "type": "mc",
+          "title": "What is the output of the following code?\npets = [\"Tiki\", \"Baltas\", \"Sal\"]\nprint(pets[-1])",
+          "options": [
+            "Tiki",
+            "Baltas",
+            "Sal",
+            "Error"
+          ],
+          "correct_answer": "C"
+        },
+        {
+          "id": "q12",
+          "type": "mc",
+          "title": "What is the output of the following code?\nschedule = {\n    \"Mon\": (\"Math\", \"Physics\"),\n    \"Tue\": (\"History\", \"Art\"),\n    \"Wed\": (\"Biology\", \"Chemistry\")\n}\nprint(schedule[\"Tue\"][2])",
+          "options": [
+            "Art",
+            "(\"History\", \"Art\")",
+            "History",
+            "Error"
+          ],
+          "correct_answer": "D"
+        },
+        {
+          "id": "q13",
+          "type": "mc",
+          "title": "What is the output of the following code?\nbooks = {\n  \"230\": {\"title\": \"Moby-Dick\",              \"author\": \"Herman Melville\"},\n  \"428\": {\"title\": \"Pride and Prejudice\",    \"author\": \"Jane Austen\"},\n  \"266\": {\"title\": \"The Brothers Karamazov\", \"author\": \"Fyodor Dostoevsky\"},\n  \"150\": {\"title\": \"Crime and Punishment\",   \"author\": \"Fyodor Dostoevsky\"},\n}\nauthors = []\nfor info in books.values():\n    if info[\"author\"] not in authors:\n        authors.append(info[\"author\"])\nprint(authors)",
+          "options": [
+            "['Herman Melville', 'Jane Austen']",
+            "['Herman Melville', 'Jane Austen', 'Fyodor Dostoevsky']",
+            "['Herman Melville', 'Jane Austen', 'Fyodor Dostoevsky', 'Fyodor Dostoevsky']",
+            "['Fyodor Dostoevsky']"
+          ],
+          "correct_answer": "B"
+        },
+        {
+          "id": "q14",
+          "type": "mc",
+          "title": "What is the output of the following code?\ninventory = {\n    \"fruits\":     [\"apple\", \"banana\", \"pear\", \"kiwi\"],\n    \"vegetables\": [\"carrot\", \"spinach\"],\n    \"snacks\":     [\"chips\"]\n}\nfor cat in inventory:\n    if len(inventory[cat]) < 2:\n        print(cat)",
+          "options": [
+            "snacks",
+            "fruits\nvegetables",
+            "[\"chips\"]",
+            "vegetables\nsnacks"
+          ],
+          "correct_answer": "A"
+        },
+        {
+          "id": "q15",
+          "type": "mc",
+          "title": "What is the output of the following code?\ndef add_item(item, collection=None):\n    if collection == []:\n        return [item]\n    collection.append(item)\n    return collection\nprint(add_item(\"ABBA\"))",
+          "options": [
+            "[\"ABBA\"]",
+            "[]",
+            "[\"ABBA\", \"ABBA\"]",
+            "Error"
+          ],
+          "correct_answer": "D"
+        },
+        {
+          "id": "q16",
+          "type": "mc",
+          "title": "What is the output of the following code?\nfirst = \"Lady\"\nlast = \"Gaga\"\ndef full_name(first=\"Freddie\", last=\"Mercury\"):\n    return f\"{first} {last}\"\nprint(full_name(\"Freddie\", \"Gibbs\"))",
+          "options": [
+            "Lady Gaga",
+            "Freddie Mercury",
+            "Freddie Gibbs",
+            "Error"
+          ],
+          "correct_answer": "C"
+        },
+        {
+          "id": "q17",
+          "type": "mc",
+          "title": "What is the output of the following code?\nclass Player:\n    def __init__(self, name):\n        self.name = name\n        self.points = 1000\n        self.lives = 3\n    def respawn(self):\n        self.lives = 3\n    def add_points(self, points):\n        self.points += points\nplayer = Player(\"Alice\")\nplayer.add_points(200)\nprint(f\"{player.name}, {player.points}\")",
+          "options": [
+            "Alice, 1000",
+            "Alice, 1200",
+            "Alice, 3",
+            "Error"
+          ],
+          "correct_answer": "B"
+        },
+        {
+          "id": "q18",
+          "type": "mc",
+          "title": "What is the output of the following code?\nclass Task:\n    def __init__(self, title, priority=0):\n        self.title = title\n        self.priority = priority\n        self.state = \"TODO\"\n    def toggle_state(self):\n        if self.state == \"TODO\":\n            self.state = \"DONE\"\n        else:\n            self.state = \"TODO\"\ntask1 = Task(\"Wash carpets\")\ntask2 = Task(\"Vet appointment\", 100)\ntask1.toggle_state()\ntask2.toggle_state()\ntask2.toggle_state()\nprint(f\"{task1.priority}, {task1.state}\")\nprint(f\"{task2.priority}, {task2.state}\")",
+          "options": [
+            "0, TODO\n100, TODO",
+            "0, DONE\n0, TODO",
+            "0, DONE\n100, TODO",
+            "0, TODO\n100, DONE"
+          ],
+          "correct_answer": "C"
+        }
+      ]
+    },
+    {
+      "name": "Section 3 - Fill in the Blank",
+      "instructions": "Questions where the student must choose the missing expression or statement.",
+      "questions": [
+        {
+          "id": "q19",
+          "type": "fill_blank",
+          "title": "You are writing a program that, given an ordered list of books returned to a library, prints the title of the most recently returned book. As books are returned, they are added to the end of the list.",
+          "template": "books = [\n    {\n        \"title\": \"Moby Dick\"\n    },\n    {\n        \"title\": \"1984\"\n    },\n    {\n        \"title\": \"Just Kids\"\n    }\n]\nprint({0})",
+          "blanks": [
+            [
+              "books[0][\"title\"]",
+              "books[-1][\"title\"]",
+              "books[len(books)][\"title\"]",
+              "books[-1]"
+            ]
+          ],
+          "correct_answers": [
+            1
+          ]
+        },
+        {
+          "id": "q20",
+          "type": "fill_blank",
+          "title": "You are writing a program to check if anchovy is an ingredient of pizza. If so, the program should print OK, otherwise it should print Missing ingredient.",
+          "template": "ingredients = {\n    \"pizza\":        (\"dough\", \"sauce\", \"cheese\", \"pepperoni\"),\n    \"sandwich\":     (\"bread\", \"lettuce\", \"anchovy\")\n}\nif {0}:\n    print(\"OK\")\nelse:\n    print(\"Missing ingredient\")",
+          "blanks": [
+            [
+              "\"anchovy\" in ingredients",
+              "\"anchovy\" in ingredients[\"pizza\"]",
+              "\"anchovy\" in \"pizza\"",
+              "\"anchovy\" in ingredients[0]"
+            ]
+          ],
+          "correct_answers": [
+            1
+          ]
+        },
+        {
+          "id": "q21",
+          "type": "fill_blank",
+          "title": "You are writing a program where you ask the user to input a number between 10 and 20. If their number is outside this range, you ask until a valid number is given.",
+          "template": "answer = int(input(\"Think of a number between 10 and 20: \"))\nwhile {0}:\n    answer = int(input(\"The number must be between 10 and 20: \"))",
+          "blanks": [
+            [
+              "answer > 10 or answer < 20",
+              "answer > 10 and answer < 20",
+              "answer < 10 or answer > 20",
+              "answer < 10 and answer > 20"
+            ]
+          ],
+          "correct_answers": [
+            2
+          ]
+        },
+        {
+          "id": "q22",
+          "type": "fill_blank",
+          "title": "You are writing a program that given a list of temperature readings and a threshold value, counts how many readings are above that value.",
+          "template": "temperatures = [21.5, 22.0, 22.4, 29.8, 30.1, 28.7]\nthreshold = 27\ncount = 0\nfor temp in temperatures:\n    if temp > threshold:\n        {0}\nprint(count)",
+          "blanks": [
+            [
+              "count + 1",
+              "count += 1",
+              "return count + 1",
+              "break"
+            ]
+          ],
+          "correct_answers": [
+            1
+          ]
+        },
+        {
+          "id": "q23",
+          "type": "fill_blank",
+          "title": "You are writing a function that, given a list of integers, returns the number of items that are greater than zero.\n# Fill in the blank below",
+          "template": "def positives({0}):\n    result = 0\n    for v in values:\n        if v > 0:\n            result += 1\n    return result\nprint(positives([-1, 0, 5, 3, -2]))",
+          "blanks": [
+            [
+              "Nothing",
+              "values",
+              "numbers",
+              "result"
+            ]
+          ],
+          "correct_answers": [
+            1
+          ]
+        },
+        {
+          "id": "q24",
+          "type": "fill_blank",
+          "title": "Consider the following function that loads an image from the file in path and resizes it to width x height pixels. You want to use this function to resize the image in file cover.jpeg to 600x600 pixels.",
+          "template": "def resize_image(path, width=800, height=600):\n    ...\nresize_image({0})",
+          "blanks": [
+            [
+              "\"cover.jpeg\"",
+              "\"cover.jpeg\", height=600",
+              "\"cover.jpeg\", 600",
+              "Nothing"
+            ]
+          ],
+          "correct_answers": [
+            2
+          ]
+        },
+        {
+          "id": "q25",
+          "type": "fill_blank",
+          "title": "Consider the following class representing a player in a video game with a name, number of lives, and points. You want to add a method to use when the player is killed in the game, i.e., it loses a life.",
+          "template": "class Player:\n    def __init__(self, name):\n        self.name = name\n        self.points = 1000\n        self.lives = 3\n    def respawn(self):\n        self.lives = 3\n    def kill(self):\n        {0}",
+          "blanks": [
+            [
+              "return self.lives - 1",
+              "self.lives - 1",
+              "self.lives = 0",
+              "self.lives = self.lives - 1"
+            ]
+          ],
+          "correct_answers": [
+            3
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Section 4 - Correct Implementation",
+      "instructions": "Questions where the student must choose the implementation that correctly solves the problem.",
+      "questions": [
+        {
+          "id": "q26",
+          "type": "mc",
+          "title": "You are writing a program where you store client details indexed by the client's fiscal number. The details you want to store are the name, address, and list of past order numbers.",
+          "options": [
+            "clients = {\n    \"269151679\": {\n        \"name\": \"Bob\",\n        \"address\": \"Portugal\",\n        \"orders\": [\"39219292\", \"123873\"]\n    }\n}",
+            "clients = [(\n    \"269151679\", \"Bob\", \"Portugal\", [\"39219292\", \"123873\"]\n)]",
+            "clients = {\n    \"269151679\": [\n        \"Bob\",\n        \"Portugal\"\n    ]\n}",
+            "clients = {\n    \"Bob\": {\n        \"nif\": \"269151679\",\n        \"address\": \"Portugal\",\n        \"orders\": [\"39219292\", \"123873\"]\n    }\n}"
+          ],
+          "correct_answer": "A"
+        },
+        {
+          "id": "q27",
+          "type": "mc",
+          "title": "You are writing a program that takes a list of temperature readings and a threshold value and prints ALERT once if it finds at least one temperature above the threshold, or OK otherwise.",
+          "options": [
+            "temperatures = [21.5, 22.0, 22.4, 29.8, 30.1, 28.7]\nthreshold = 27\nfor temp in temperatures:\n    if temp > threshold:\n        print(\"ALERT\")\n    else:\n        print(\"OK\")",
+            "temperatures = [21.5, 22.0, 22.4, 29.8, 30.1, 28.7]\nthreshold = 27\nok = True\nfor temp in temperatures:\n    if temp > threshold:\n        print(\"ALERT\")\n        ok = False\n        break\nif ok:\n    print(\"OK\")",
+            "temperatures = [21.5, 22.0, 22.4, 29.8, 30.1, 28.7]\nthreshold = 27\nok = True\nfor temp in temperatures:\n    if temp > threshold:\n        print(\"ALERT\")\n        ok = False\nif ok:\n    print(\"OK\")",
+            "temperatures = [21.5, 22.0, 22.4, 29.8, 30.1, 28.7]\nthreshold = 27\nok = True\nfor temp in temperatures:\n    if temp > threshold:\n        print(\"ALERT\")\n        break\n print(\"OK\")"
+          ],
+          "correct_answer": "B"
+        },
+        {
+          "id": "q28",
+          "type": "mc",
+          "title": "You want to implement a function that, given 1) a list of tuples of the form (color, size), 2) a color, and 3) a size, returns True if there is any tshirt in such a color and size, or False otherwise.\n# A list with 3 tshirts. Two of them red and size S, one blue in size M.\ntshirts = [(\"blue\", \"M\"), (\"red\", \"S\"),  (\"red\", \"S\")]\n# Check if there are any red shirts of size M\nhas_shirt(tshirts, \"red\", \"M\")\n>>> False\n# Check if there are any red shirts of size S\nhas_shirt(tshirts, \"red\", \"S\")\n>>> True",
+          "options": [
+            "def has_shirt(tshirts, color, size):\n    for t_color, t_size in tshirts:\n        if t_color == color and t_size == size:\n            return True\n        else:\n            return False",
+            "def has_shirt(tshirts, color, size):\n    for t_color, t_size in tshirts:\n        if t_color == color and t_size == size:\n            return True\n    return False",
+            "def has_shirt(tshirts):\n    for t_color, t_size in tshirts:\n        if t_color == color and t_size == size:\n            return True\n    return False",
+            "This function is impossible to implement."
+          ],
+          "correct_answer": "B"
+        },
+        {
+          "id": "q29",
+          "type": "mc",
+          "title": "Consider the following class representing a player in a video game with a name, number of lives, and points. You want to add a method to transfer a given amount of points from one player to another. You can assume this amount is always valid.\nclass Player:\n    def __init__(self, name):\n        self.name = name\n        self.points = 1000\n        self.lives = 3",
+          "options": [
+            "def transfer(player, points):\n    player.points = points",
+            "def transfer(self, player, points):\n    player.points += points",
+            "def transfer(self, player, points):\n    self.points = points\n    player.points = points",
+            "def transfer(self, player, points):\n    self.points -= points\n    player.points += points"
+          ],
+          "correct_answer": "D"
+        },
+        {
+          "id": "q30",
+          "type": "mc",
+          "title": "You are given a class representing a recipe, which stores its ingredients in a dictionary mapping ingredient names to quantities. You want to add a method that increases the quantity of an ingredient if it already exists, or creates it if it does not.\nclass Recipe:\n    def __init__(self, name, ingredients):\n        # ingredients is a dict like {\"flour\": 200, \"eggs\": 3}\n        self.name = name\n        self.ingredients = ingredients",
+          "options": [
+            "def add_ingredient(self, name, amount):\n    self.ingredients = amount",
+            "def add_ingredient(self, name, amount):\n    if name in amount:\n        amount[name] += self.ingredients",
+            "def add_ingredient(self, name, amount):\n    self.ingredients[name] = amount",
+            "def add_ingredient(self, name, amount):\n    if name in self.ingredients:\n        self.ingredients[name] += amount\n    else:\n        self.ingredients[name] = amount"
+          ],
+          "correct_answer": "D"
+        }
+      ]
+    }
+  ],
+  "questions": [
+    {
+      "id": "q1",
+      "type": "mc",
+      "title": "What is the main reason to implement a function?",
+      "options": [
+        "To reduce the number of errors",
+        "To make the program run automatically",
+        "To avoid code duplication and give the computation a clear purpose",
+        "To force the use of parameters"
+      ],
+      "correct_answer": "C"
+    },
+    {
+      "id": "q2",
+      "type": "mc",
+      "title": "When selecting a data structure, what is the main reason behind choosing a list?",
+      "options": [
+        "Lists are always faster",
+        "The problem involves an ordered collection that may change over time",
+        "Lists prevent invalid data",
+        "Lists work only with numbers"
+      ],
+      "correct_answer": "B"
+    },
+    {
+      "id": "q3",
+      "type": "mc",
+      "title": "What is the difference between print and return?",
+      "options": [
+        "There is no difference",
+        "print displays information to the console, while return provides a value back to the caller",
+        "print can not be used after return",
+        "print can only display strings, while return can display any type"
+      ],
+      "correct_answer": "B"
+    },
+    {
+      "id": "q4",
+      "type": "mc",
+      "title": "Why are classes useful in program design?",
+      "options": [
+        "They make code shorter",
+        "They replace all dictionaries",
+        "They allow grouping related attributes (data) and behaviors (code)",
+        "They automatically validate data"
+      ],
+      "correct_answer": "C"
+    },
+    {
+      "id": "q5",
+      "type": "mc",
+      "title": "Which approach best supports organizing larger programs?",
+      "options": [
+        "Using only global variables",
+        "Writing code in a single long file",
+        "Splitting behavior into functions and classes",
+        "Using artificial intelligence"
+      ],
+      "correct_answer": "C"
+    },
+    {
+      "id": "q6",
+      "type": "mc",
+      "title": "When is a for loop more appropriate than a while loop?",
+      "options": [
+        "When iterating over a known sequence",
+        "When repeating until a condition becomes false",
+        "When looping forever",
+        "When avoiding iteration"
+      ],
+      "correct_answer": "A"
+    },
+    {
+      "id": "q7",
+      "type": "mc",
+      "title": "You want to store student names grouped by class. Which structure fits best?",
+      "options": [
+        "A list of student names and classes",
+        "A dictionary mapping class names to lists of students",
+        "A tuple of lists with student name and class",
+        "A list of dictionaries with no keys"
+      ],
+      "correct_answer": "B"
+    },
+    {
+      "id": "q8",
+      "type": "mc",
+      "title": "You write a function that checks whether a given student passed a given course. What should the arguments be?",
+      "options": [
+        "The student's score and the passing score",
+        "Only the student's score",
+        "Only the passing score",
+        "A list of all students' scores"
+      ],
+      "correct_answer": "A"
+    },
+    {
+      "id": "q9",
+      "type": "mc",
+      "title": "What is the purpose of an else statement in an if-else structure?",
+      "options": [
+        "To repeat code until a condition becomes false",
+        "To run code when none of the preceding if/elif conditions are true",
+        "To check multiple conditions at once",
+        "To stop the program if a condition is False"
+      ],
+      "correct_answer": "B"
+    },
+    {
+      "id": "q10",
+      "type": "mc",
+      "title": "Which of the following makes a program easier to maintain and extend?",
+      "options": [
+        "Writing as few lines of code as possible.",
+        "Avoiding comments.",
+        "Grouping behavior into functions and classes.",
+        "Using only lists and no dictionaries."
+      ],
+      "correct_answer": "C"
+    },
+    {
+      "id": "q11",
+      "type": "mc",
+      "title": "What is the output of the following code?\npets = [\"Tiki\", \"Baltas\", \"Sal\"]\nprint(pets[-1])",
+      "options": [
+        "Tiki",
+        "Baltas",
+        "Sal",
+        "Error"
+      ],
+      "correct_answer": "C"
+    },
+    {
+      "id": "q12",
+      "type": "mc",
+      "title": "What is the output of the following code?\nschedule = {\n    \"Mon\": (\"Math\", \"Physics\"),\n    \"Tue\": (\"History\", \"Art\"),\n    \"Wed\": (\"Biology\", \"Chemistry\")\n}\nprint(schedule[\"Tue\"][2])",
+      "options": [
+        "Art",
+        "(\"History\", \"Art\")",
+        "History",
+        "Error"
+      ],
+      "correct_answer": "D"
+    },
+    {
+      "id": "q13",
+      "type": "mc",
+      "title": "What is the output of the following code?\nbooks = {\n  \"230\": {\"title\": \"Moby-Dick\",              \"author\": \"Herman Melville\"},\n  \"428\": {\"title\": \"Pride and Prejudice\",    \"author\": \"Jane Austen\"},\n  \"266\": {\"title\": \"The Brothers Karamazov\", \"author\": \"Fyodor Dostoevsky\"},\n  \"150\": {\"title\": \"Crime and Punishment\",   \"author\": \"Fyodor Dostoevsky\"},\n}\nauthors = []\nfor info in books.values():\n    if info[\"author\"] not in authors:\n        authors.append(info[\"author\"])\nprint(authors)",
+      "options": [
+        "['Herman Melville', 'Jane Austen']",
+        "['Herman Melville', 'Jane Austen', 'Fyodor Dostoevsky']",
+        "['Herman Melville', 'Jane Austen', 'Fyodor Dostoevsky', 'Fyodor Dostoevsky']",
+        "['Fyodor Dostoevsky']"
+      ],
+      "correct_answer": "B"
+    },
+    {
+      "id": "q14",
+      "type": "mc",
+      "title": "What is the output of the following code?\ninventory = {\n    \"fruits\":     [\"apple\", \"banana\", \"pear\", \"kiwi\"],\n    \"vegetables\": [\"carrot\", \"spinach\"],\n    \"snacks\":     [\"chips\"]\n}\nfor cat in inventory:\n    if len(inventory[cat]) < 2:\n        print(cat)",
+      "options": [
+        "snacks",
+        "fruits\nvegetables",
+        "[\"chips\"]",
+        "vegetables\nsnacks"
+      ],
+      "correct_answer": "A"
+    },
+    {
+      "id": "q15",
+      "type": "mc",
+      "title": "What is the output of the following code?\ndef add_item(item, collection=None):\n    if collection == []:\n        return [item]\n    collection.append(item)\n    return collection\nprint(add_item(\"ABBA\"))",
+      "options": [
+        "[\"ABBA\"]",
+        "[]",
+        "[\"ABBA\", \"ABBA\"]",
+        "Error"
+      ],
+      "correct_answer": "D"
+    },
+    {
+      "id": "q16",
+      "type": "mc",
+      "title": "What is the output of the following code?\nfirst = \"Lady\"\nlast = \"Gaga\"\ndef full_name(first=\"Freddie\", last=\"Mercury\"):\n    return f\"{first} {last}\"\nprint(full_name(\"Freddie\", \"Gibbs\"))",
+      "options": [
+        "Lady Gaga",
+        "Freddie Mercury",
+        "Freddie Gibbs",
+        "Error"
+      ],
+      "correct_answer": "C"
+    },
+    {
+      "id": "q17",
+      "type": "mc",
+      "title": "What is the output of the following code?\nclass Player:\n    def __init__(self, name):\n        self.name = name\n        self.points = 1000\n        self.lives = 3\n    def respawn(self):\n        self.lives = 3\n    def add_points(self, points):\n        self.points += points\nplayer = Player(\"Alice\")\nplayer.add_points(200)\nprint(f\"{player.name}, {player.points}\")",
+      "options": [
+        "Alice, 1000",
+        "Alice, 1200",
+        "Alice, 3",
+        "Error"
+      ],
+      "correct_answer": "B"
+    },
+    {
+      "id": "q18",
+      "type": "mc",
+      "title": "What is the output of the following code?\nclass Task:\n    def __init__(self, title, priority=0):\n        self.title = title\n        self.priority = priority\n        self.state = \"TODO\"\n    def toggle_state(self):\n        if self.state == \"TODO\":\n            self.state = \"DONE\"\n        else:\n            self.state = \"TODO\"\ntask1 = Task(\"Wash carpets\")\ntask2 = Task(\"Vet appointment\", 100)\ntask1.toggle_state()\ntask2.toggle_state()\ntask2.toggle_state()\nprint(f\"{task1.priority}, {task1.state}\")\nprint(f\"{task2.priority}, {task2.state}\")",
+      "options": [
+        "0, TODO\n100, TODO",
+        "0, DONE\n0, TODO",
+        "0, DONE\n100, TODO",
+        "0, TODO\n100, DONE"
+      ],
+      "correct_answer": "C"
+    },
+    {
+      "id": "q19",
+      "type": "fill_blank",
+      "title": "You are writing a program that, given an ordered list of books returned to a library, prints the title of the most recently returned book. As books are returned, they are added to the end of the list.",
+      "template": "books = [\n    {\n        \"title\": \"Moby Dick\"\n    },\n    {\n        \"title\": \"1984\"\n    },\n    {\n        \"title\": \"Just Kids\"\n    }\n]\nprint({0})",
+      "blanks": [
+        [
+          "books[0][\"title\"]",
+          "books[-1][\"title\"]",
+          "books[len(books)][\"title\"]",
+          "books[-1]"
+        ]
+      ],
+      "correct_answers": [
+        1
+      ]
+    },
+    {
+      "id": "q20",
+      "type": "fill_blank",
+      "title": "You are writing a program to check if anchovy is an ingredient of pizza. If so, the program should print OK, otherwise it should print Missing ingredient.",
+      "template": "ingredients = {\n    \"pizza\":        (\"dough\", \"sauce\", \"cheese\", \"pepperoni\"),\n    \"sandwich\":     (\"bread\", \"lettuce\", \"anchovy\")\n}\nif {0}:\n    print(\"OK\")\nelse:\n    print(\"Missing ingredient\")",
+      "blanks": [
+        [
+          "\"anchovy\" in ingredients",
+          "\"anchovy\" in ingredients[\"pizza\"]",
+          "\"anchovy\" in \"pizza\"",
+          "\"anchovy\" in ingredients[0]"
+        ]
+      ],
+      "correct_answers": [
+        1
+      ]
+    },
+    {
+      "id": "q21",
+      "type": "fill_blank",
+      "title": "You are writing a program where you ask the user to input a number between 10 and 20. If their number is outside this range, you ask until a valid number is given.",
+      "template": "answer = int(input(\"Think of a number between 10 and 20: \"))\nwhile {0}:\n    answer = int(input(\"The number must be between 10 and 20: \"))",
+      "blanks": [
+        [
+          "answer > 10 or answer < 20",
+          "answer > 10 and answer < 20",
+          "answer < 10 or answer > 20",
+          "answer < 10 and answer > 20"
+        ]
+      ],
+      "correct_answers": [
+        2
+      ]
+    },
+    {
+      "id": "q22",
+      "type": "fill_blank",
+      "title": "You are writing a program that given a list of temperature readings and a threshold value, counts how many readings are above that value.",
+      "template": "temperatures = [21.5, 22.0, 22.4, 29.8, 30.1, 28.7]\nthreshold = 27\ncount = 0\nfor temp in temperatures:\n    if temp > threshold:\n        {0}\nprint(count)",
+      "blanks": [
+        [
+          "count + 1",
+          "count += 1",
+          "return count + 1",
+          "break"
+        ]
+      ],
+      "correct_answers": [
+        1
+      ]
+    },
+    {
+      "id": "q23",
+      "type": "fill_blank",
+      "title": "You are writing a function that, given a list of integers, returns the number of items that are greater than zero.\n# Fill in the blank below",
+      "template": "def positives({0}):\n    result = 0\n    for v in values:\n        if v > 0:\n            result += 1\n    return result\nprint(positives([-1, 0, 5, 3, -2]))",
+      "blanks": [
+        [
+          "Nothing",
+          "values",
+          "numbers",
+          "result"
+        ]
+      ],
+      "correct_answers": [
+        1
+      ]
+    },
+    {
+      "id": "q24",
+      "type": "fill_blank",
+      "title": "Consider the following function that loads an image from the file in path and resizes it to width x height pixels. You want to use this function to resize the image in file cover.jpeg to 600x600 pixels.",
+      "template": "def resize_image(path, width=800, height=600):\n    ...\nresize_image({0})",
+      "blanks": [
+        [
+          "\"cover.jpeg\"",
+          "\"cover.jpeg\", height=600",
+          "\"cover.jpeg\", 600",
+          "Nothing"
+        ]
+      ],
+      "correct_answers": [
+        2
+      ]
+    },
+    {
+      "id": "q25",
+      "type": "fill_blank",
+      "title": "Consider the following class representing a player in a video game with a name, number of lives, and points. You want to add a method to use when the player is killed in the game, i.e., it loses a life.",
+      "template": "class Player:\n    def __init__(self, name):\n        self.name = name\n        self.points = 1000\n        self.lives = 3\n    def respawn(self):\n        self.lives = 3\n    def kill(self):\n        {0}",
+      "blanks": [
+        [
+          "return self.lives - 1",
+          "self.lives - 1",
+          "self.lives = 0",
+          "self.lives = self.lives - 1"
+        ]
+      ],
+      "correct_answers": [
+        3
+      ]
+    },
+    {
+      "id": "q26",
+      "type": "mc",
+      "title": "You are writing a program where you store client details indexed by the client's fiscal number. The details you want to store are the name, address, and list of past order numbers.",
+      "options": [
+        "clients = {\n    \"269151679\": {\n        \"name\": \"Bob\",\n        \"address\": \"Portugal\",\n        \"orders\": [\"39219292\", \"123873\"]\n    }\n}",
+        "clients = [(\n    \"269151679\", \"Bob\", \"Portugal\", [\"39219292\", \"123873\"]\n)]",
+        "clients = {\n    \"269151679\": [\n        \"Bob\",\n        \"Portugal\"\n    ]\n}",
+        "clients = {\n    \"Bob\": {\n        \"nif\": \"269151679\",\n        \"address\": \"Portugal\",\n        \"orders\": [\"39219292\", \"123873\"]\n    }\n}"
+      ],
+      "correct_answer": "A"
+    },
+    {
+      "id": "q27",
+      "type": "mc",
+      "title": "You are writing a program that takes a list of temperature readings and a threshold value and prints ALERT once if it finds at least one temperature above the threshold, or OK otherwise.",
+      "options": [
+        "temperatures = [21.5, 22.0, 22.4, 29.8, 30.1, 28.7]\nthreshold = 27\nfor temp in temperatures:\n    if temp > threshold:\n        print(\"ALERT\")\n    else:\n        print(\"OK\")",
+        "temperatures = [21.5, 22.0, 22.4, 29.8, 30.1, 28.7]\nthreshold = 27\nok = True\nfor temp in temperatures:\n    if temp > threshold:\n        print(\"ALERT\")\n        ok = False\n        break\nif ok:\n    print(\"OK\")",
+        "temperatures = [21.5, 22.0, 22.4, 29.8, 30.1, 28.7]\nthreshold = 27\nok = True\nfor temp in temperatures:\n    if temp > threshold:\n        print(\"ALERT\")\n        ok = False\nif ok:\n    print(\"OK\")",
+        "temperatures = [21.5, 22.0, 22.4, 29.8, 30.1, 28.7]\nthreshold = 27\nok = True\nfor temp in temperatures:\n    if temp > threshold:\n        print(\"ALERT\")\n        break\n print(\"OK\")"
+      ],
+      "correct_answer": "B"
+    },
+    {
+      "id": "q28",
+      "type": "mc",
+      "title": "You want to implement a function that, given 1) a list of tuples of the form (color, size), 2) a color, and 3) a size, returns True if there is any tshirt in such a color and size, or False otherwise.\n# A list with 3 tshirts. Two of them red and size S, one blue in size M.\ntshirts = [(\"blue\", \"M\"), (\"red\", \"S\"),  (\"red\", \"S\")]\n# Check if there are any red shirts of size M\nhas_shirt(tshirts, \"red\", \"M\")\n>>> False\n# Check if there are any red shirts of size S\nhas_shirt(tshirts, \"red\", \"S\")\n>>> True",
+      "options": [
+        "def has_shirt(tshirts, color, size):\n    for t_color, t_size in tshirts:\n        if t_color == color and t_size == size:\n            return True\n        else:\n            return False",
+        "def has_shirt(tshirts, color, size):\n    for t_color, t_size in tshirts:\n        if t_color == color and t_size == size:\n            return True\n    return False",
+        "def has_shirt(tshirts):\n    for t_color, t_size in tshirts:\n        if t_color == color and t_size == size:\n            return True\n    return False",
+        "This function is impossible to implement."
+      ],
+      "correct_answer": "B"
+    },
+    {
+      "id": "q29",
+      "type": "mc",
+      "title": "Consider the following class representing a player in a video game with a name, number of lives, and points. You want to add a method to transfer a given amount of points from one player to another. You can assume this amount is always valid.\nclass Player:\n    def __init__(self, name):\n        self.name = name\n        self.points = 1000\n        self.lives = 3",
+      "options": [
+        "def transfer(player, points):\n    player.points = points",
+        "def transfer(self, player, points):\n    player.points += points",
+        "def transfer(self, player, points):\n    self.points = points\n    player.points = points",
+        "def transfer(self, player, points):\n    self.points -= points\n    player.points += points"
+      ],
+      "correct_answer": "D"
+    },
+    {
+      "id": "q30",
+      "type": "mc",
+      "title": "You are given a class representing a recipe, which stores its ingredients in a dictionary mapping ingredient names to quantities. You want to add a method that increases the quantity of an ingredient if it already exists, or creates it if it does not.\nclass Recipe:\n    def __init__(self, name, ingredients):\n        # ingredients is a dict like {\"flour\": 200, \"eggs\": 3}\n        self.name = name\n        self.ingredients = ingredients",
+      "options": [
+        "def add_ingredient(self, name, amount):\n    self.ingredients = amount",
+        "def add_ingredient(self, name, amount):\n    if name in amount:\n        amount[name] += self.ingredients",
+        "def add_ingredient(self, name, amount):\n    self.ingredients[name] = amount",
+        "def add_ingredient(self, name, amount):\n    if name in self.ingredients:\n        self.ingredients[name] += amount\n    else:\n        self.ingredients[name] = amount"
+      ],
+      "correct_answer": "D"
+    }
+  ]
+}
